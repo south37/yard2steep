@@ -30,7 +30,7 @@ class MyClass
     ''
   end
 
-  class InnerClass
+  module InnerClass
     # @param [Integer] source
     # @return [Integer]
     def double(source:); source * 2; end
