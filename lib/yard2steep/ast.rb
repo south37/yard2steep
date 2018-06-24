@@ -1,11 +1,15 @@
 module Yard2steep
   # ClassNode represents `Class` or `Module` AST.
   class ClassNode
-    attr_accessor :c_name, :m_list, :children, :parent
+    attr_accessor :kind, :c_name, :m_list, :children, :parent
 
-    def initialize(c_name:, parent:)
+    KIND = ['class', 'module']
+
+    def initialize(kind:, c_name:, parent:)
+      Util.assert! { KIND.include?(kind) }
       Util.assert! { c_name.is_a?(String) }
       Util.assert! { parent.is_a?(ClassNode) || (parent.nil? && c_name == 'main') }
+      @kind     = kind
       @c_name   = c_name
       @m_list   = []
       @children = []
@@ -34,7 +38,7 @@ module Yard2steep
     end
   end
 
-  ClassNode::Main = ClassNode.new(c_name: 'main', parent: nil)
+  ClassNode::Main = ClassNode.new(kind: 'module', c_name: 'main', parent: nil)
 
   # MethodNode represents `method` AST.
   class MethodNode

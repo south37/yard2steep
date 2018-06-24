@@ -9,7 +9,7 @@ module Yard2steep
 
 
     # NOTE: CLASS_RE may not be correct.
-    CLASS_RE = /#{PRE_RE}(?:class|module)#{S_P_RE}(\w+)#{POST_RE}/
+    CLASS_RE = /#{PRE_RE}(class|module)#{S_P_RE}(\w+)#{POST_RE}/
     # NOTE: END_RE may not be correct.
     END_RE   = /#{PRE_RE}end#{POST_RE}/
 
@@ -106,7 +106,8 @@ module Yard2steep
       reset_method_context!
 
       c = ClassNode.new(
-        c_name: m[1],
+        kind:   m[1],
+        c_name: m[2],
         parent: @current_class,
       )
       @current_class.append_child(c)
