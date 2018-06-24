@@ -19,6 +19,19 @@ module Yard2steep
     def append_child(child)
       @children.push(child)
     end
+
+    def long_name
+      @long_name ||= begin
+         # NOTE: main has no long_name
+         if @c_name == 'main'
+           ''
+         elsif @parent.c_name == 'main'
+           @c_name
+         else
+           "#{@parent.long_name}::#{@c_name}"
+         end
+      end
+    end
   end
 
   ClassNode::Main = ClassNode.new(c_name: 'main', parent: nil)

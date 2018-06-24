@@ -31,10 +31,10 @@ module Yard2steep
         # generate type definition of methods.
         gen_c_list!(c_node, off: 0)
       else
-        emit! "class #{c_node.c_name}\n", off: off
+        emit! "class #{c_node.long_name}\n", off: off
         gen_m_list!(c_node, off: off + 2)
-        gen_c_list!(c_node, off: off + 2)
         emit! "end\n", off: off
+        gen_c_list!(c_node, off: off)
       end
     end
 
