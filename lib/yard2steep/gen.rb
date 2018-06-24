@@ -27,18 +27,24 @@ module Yard2steep
 
       # TODO(south37) We should check `main` by class_node's type (not name).
       if c_node.c_name == 'main'
-        gen_c_body!(c_node, off: 0)
+        # NOTE: In main, steep does not check method type, so we does not
+        # generate type definition of methods.
+        gen_c_list!(c_node, off: 0)
       else
         emit! "class #{c_node.c_name}\n", off: off
-        gen_c_body!(c_node, off: off + 2)
+        gen_m_list!(c_node, off: off + 2)
+        gen_c_list!(c_node, off: off + 2)
         emit! "end\n", off: off
       end
     end
 
-    def gen_c_body!(c_node, off:)
+    def gen_m_list!(c_node, off:)
       c_node.m_list.each do |m_node|
         gen_m!(m_node, off: off)
       end
+    end
+
+    def gen_c_list!(c_node, off:)
       c_node.children.each do |c_node|
         gen_c!(c_node, off: off)
       end
