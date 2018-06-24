@@ -13,10 +13,15 @@ end
 # @param [Array] contents
 
 class MyClass
+  # @return [String]
+  def name
+    'name'
+  end
+
   # @param [String] contents
   # @param [Symbol] order
   # @return [String]
-  def reverse contents:, order:
+  def reverse contents, order:
     # .
     # .
     # .

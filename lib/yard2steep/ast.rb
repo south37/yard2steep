@@ -50,8 +50,24 @@ module Yard2steep
     end
   end
 
-  # ParamNode represents `parameter` AST.
-  class ParamNode
+  class PNode
+    attr_accessor :type_node, :style
+
+    STYLE = {
+      normal:  "STYLE.normal",
+      keyword: "STYLE.keyword",
+    }
+
+    def initialize(type_node:, style:)
+      Util.assert! { type_node.is_a?(PTypeNode) }
+      Util.assert! { STYLE.values.include?(style) }
+      @type_node = type_node
+      @style     = style
+    end
+  end
+
+  # PTypeNode represents `parameter` AST.
+  class PTypeNode
     attr_accessor :p_type, :p_name
 
     def initialize(p_type:, p_name:)

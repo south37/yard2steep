@@ -53,12 +53,33 @@ module Yard2steep
     def gen_m!(m_node, off:)
       Util.assert! { m_node.is_a?(MethodNode) }
       emit! "def #{m_node.m_name}: ", off: off
-      if m_node.p_list.size > 0
+      len = m_node.p_list.size
+      if len > 0
         emit! "("
-        emit! m_node.p_list.map { |h| "#{h.p_name}: #{h.p_type}" }.join(", ")
+
+        m_node.p_list.each.with_index do |p, i|
+          gen_m_p!(p)
+          if i < (len - 1)
+            emit!(", ")
+          end
+        end
+
         emit! ") "
       end
       emit! "-> #{m_node.r_type}\n"
+    end
+
+    def gen_m_p!(p_node)
+      t = p_node.type_node
+
+      case p_node.style
+      when PNode::STYLE[:normal]
+        emit! t.p_type
+      when PNode::STYLE[:keyword]
+        emit! "#{t.p_name}: #{t.p_type}"
+      else
+        raise "invalid style: #{p_node.style}"
+      end
     end
   end
 end

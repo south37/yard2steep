@@ -13,16 +13,41 @@ module Yard2steep
     # NOTE: END_RE may not be correct.
     END_RE   = /#{PRE_RE}end#{POST_RE}/
 
-    COMMENT_RE         = /\s*#/
+    COMMENT_RE         = /#{PRE_RE}#/
     TYPE_WITH_PAREN_RE = /\[([^\]]*)\]/
 
     PARAM_RE  = /#{COMMENT_RE}#{S_P_RE}@param#{S_P_RE}#{TYPE_WITH_PAREN_RE}#{S_P_RE}(\w+)/
     RETURN_RE = /#{COMMENT_RE}#{S_P_RE}@return#{S_P_RE}#{TYPE_WITH_PAREN_RE}/
+
+    PAREN_RE = /
+      \(
+        ([^)]*)
+      \)
+    /x
+
     # NOTE: This implementation should be fixed.
-    ARGS_RE   = /#{S_RE}\([^)]*\)|#{S_P_RE}.*/
+    ARGS_RE   = /
+      #{S_RE}
+      \(
+        [^)]*
+      \)
+      |
+      #{S_P_RE}
+      .*
+    /x
 
     # NOTE: METHOD_RE may not be correct.
-    METHOD_RE = /#{PRE_RE}def#{S_P_RE}(\w+)(#{ARGS_RE})?#{POST_RE}/
+    METHOD_RE = /
+      #{PRE_RE}
+      def
+      #{S_P_RE}
+      (\w+)
+      (
+        (?:#{ARGS_RE})
+        ?
+      )
+      #{POST_RE}
+    /x
 
     STATES = {
       class:  "STATES.class",
@@ -44,9 +69,9 @@ module Yard2steep
 
     def reset_method_context!
       # Current method context. Flushed when method definition is parsed.
-      @p_list = []
-      @r_type = nil
-      @m_name = nil
+      @p_types = {}
+      @r_type  = nil
+      @m_name  = nil
     end
 
     def parse(text)
@@ -109,11 +134,11 @@ module Yard2steep
       m = l.match(PARAM_RE)
       return false if m.nil?
 
-      p = ParamNode.new(
+      p = PTypeNode.new(
         p_type: m[1],
         p_name: m[2],
       )
-      @p_list.push(p)
+      @p_types[p.p_name] = p
 
       true
     end
@@ -131,13 +156,17 @@ module Yard2steep
       m = l.match(METHOD_RE)
       return false if m.nil?
 
+      Util.assert! { m[1].is_a?(String) && m[2].is_a?(String) }
+
       if @r_type.nil?
         raise "@r_type must be specified before method definition"
       end
+
       @m_name = m[1]
+      p_list = parse_method_params(m[2].strip)
 
       m_node = MethodNode.new(
-        p_list: @p_list,
+        p_list: p_list,
         r_type: @r_type,
         m_name: @m_name,
       )
@@ -146,6 +175,38 @@ module Yard2steep
       @state = STATES[:method]
 
       true
+    end
+
+    def parse_method_params(params_s)
+      Util.assert! { params_s.is_a?(String) }
+
+      # NOTE: Remove parenthesis
+      if (m = params_s.match(PAREN_RE))
+        params_s = m[1]
+      end
+
+      if params_s == ''
+        if @p_types.size > 0
+          print "warn: #{@m_name} has no args, but annotated as #{@p_types}"
+        end
+        return []
+      end
+
+      params_s.split(',').map(&:strip).map do |p|
+        if p.include?(':')
+          # TODO: Add warn when value exists
+          name = p.split(':')[0]
+          PNode.new(
+            type_node: @p_types[name],
+            style:     PNode::STYLE[:keyword],
+          )
+        else
+          PNode.new(
+            type_node: @p_types[p],
+            style:     PNode::STYLE[:normal],
+          )
+        end
+      end
     end
   end
 end
