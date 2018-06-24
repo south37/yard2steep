@@ -39,6 +39,11 @@ class MyClass
     ''
   end
 
+  # NOTE: should be interpreterd as any -> any
+  def first(list)
+    list.last
+  end
+
   module InnerClass
     # @param [Integer] source
     # @return [Integer]

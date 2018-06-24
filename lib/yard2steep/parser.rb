@@ -55,6 +55,8 @@ module Yard2steep
       method: "STATES.method",
     }
 
+    ANY_TYPE = 'any'
+
     def initialize
       main = ClassNode::Main
       @ast = main
@@ -180,16 +182,12 @@ module Yard2steep
 
       Util.assert! { m[1].is_a?(String) && m[2].is_a?(String) }
 
-      if @r_type.nil?
-        raise "@r_type must be specified before method definition"
-      end
-
       @m_name = m[1]
       p_list = parse_method_params(m[2].strip)
 
       m_node = MethodNode.new(
         p_list: p_list,
-        r_type: @r_type,
+        r_type: (@r_type || ANY_TYPE),
         m_name: @m_name,
       )
       @current_class.append_m(m_node)
@@ -220,16 +218,22 @@ module Yard2steep
           # TODO: Add warn when value exists
           name = p.split(':')[0]
           PNode.new(
-            type_node: @p_types[name],
+            type_node: type_node(name),
             style:     PNode::STYLE[:keyword],
           )
         else
           PNode.new(
-            type_node: @p_types[p],
+            type_node: type_node(p),
             style:     PNode::STYLE[:normal],
           )
         end
       end
+    end
+
+    ##
+    # Helper
+    def type_node(p)
+      @p_types[p] || PTypeNode.new(p_type: ANY_TYPE, p_name: p)
     end
   end
 end
