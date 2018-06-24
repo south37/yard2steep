@@ -1,0 +1,26 @@
+PATH
+  remote: .
+  specs:
+    yard2steep (0.1.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    coderay (1.1.2)
+    method_source (0.9.0)
+    pry (0.11.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.9.0)
+    rake (10.5.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.16)
+  pry
+  rake (~> 10.0)
+  yard2steep!
+
+BUNDLED WITH
+   1.16.1
