@@ -7,11 +7,12 @@ module Yard2steep
     PRE_RE  = /^#{S_RE}/
     POST_RE = /#{S_RE}$/
 
-
     # NOTE: CLASS_RE may not be correct.
     CLASS_RE = /#{PRE_RE}(class|module)#{S_P_RE}(\w+)#{POST_RE}/
     # NOTE: END_RE may not be correct.
     END_RE   = /#{PRE_RE}end#{POST_RE}/
+
+    BEGIN_END_RE = /#{PRE_RE}(if|unless|do|while|until|case|for)(?:#{S_P_RE}.*)?$/
 
     COMMENT_RE         = /#{PRE_RE}#/
     TYPE_WITH_PAREN_RE = /\[([^\]]*)\]/
@@ -60,6 +61,8 @@ module Yard2steep
 
       # Parser state
       @state = STATES[:class]
+      # Stack stores begining keyword of end
+      @stack = []
 
       # NOTE: reset class context
       @current_class = main
@@ -86,6 +89,7 @@ module Yard2steep
     # multiple times before method definition.
     def parse_line(l)
       return if try_parse_end(l)
+      return if try_parse_begin_end(l)
 
       if @state == STATES[:class]
         return if try_parse_class(l)
@@ -95,6 +99,37 @@ module Yard2steep
       end
 
       # NOTE: Reach here when other case
+    end
+
+    def try_parse_end(l)
+      return false if !l.match?(END_RE)
+
+      if @stack.size == 0
+        raise "Invalid end: #{l}"
+      end
+
+      last = @stack.pop
+      if STATES.values.include?(last)
+        case @state
+        when STATES[:method]
+          @state = STATES[:class]
+        when STATES[:class]
+          @current_class = @current_class.parent
+        else
+          raise "Invalid state: #{@state}"
+        end
+      end
+
+      true
+    end
+
+    def try_parse_begin_end(l)
+      m = l.match(BEGIN_END_RE)
+      return false if m.nil?
+
+      @stack.push(m[1])
+
+      true
     end
 
     def try_parse_class(l)
@@ -112,21 +147,7 @@ module Yard2steep
       )
       @current_class.append_child(c)
       @current_class = c
-
-      true
-    end
-
-    def try_parse_end(l)
-      return false if !l.match?(END_RE)
-
-      case @state
-      when STATES[:method]
-        @state = STATES[:class]
-      when STATES[:class]
-        @current_class = @current_class.parent
-      else
-        raise "invalid state: #{@state}"
-      end
+      @stack.push(STATES[:class])
 
       true
     end
@@ -174,6 +195,7 @@ module Yard2steep
       @current_class.append_m(m_node)
       reset_method_context!
       @state = STATES[:method]
+      @stack.push(STATES[:method])
 
       true
     end

@@ -22,6 +22,15 @@ class MyClass
   # @param [Symbol] order
   # @return [String]
   def reverse contents, order:
+    if order == :normal
+      return ''
+    end
+
+    case order
+    when :other then return ''
+    else
+      raise "invalid"
+    end
     # .
     # .
     # .
