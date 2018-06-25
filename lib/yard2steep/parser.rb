@@ -12,7 +12,7 @@ module Yard2steep
     # NOTE: END_RE may not be correct.
     END_RE   = /#{PRE_RE}end#{POST_RE}/
 
-    BEGIN_END_RE = /#{PRE_RE}(if|unless|do|while|until|case|for)(?:#{S_P_RE}.*)?$/
+    BEGIN_END_RE = /#{S_P_RE}(if|unless|do|while|until|case|for)(?:#{S_P_RE}.*)?$/
 
     COMMENT_RE         = /#{PRE_RE}#/
     TYPE_WITH_PAREN_RE = /\[([^\]]*)\]/
