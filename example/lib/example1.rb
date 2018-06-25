@@ -13,6 +13,14 @@ end
 # @param [Array] contents
 
 class MyClass
+  # NOTE: method definition in singleton class should be ignored
+  class << self
+    # @return [String]
+    def ok
+      'ok'
+    end
+  end
+
   # @return [String]
   def name
     'name'

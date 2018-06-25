@@ -7,10 +7,9 @@ module Yard2steep
     PRE_RE  = /^#{S_RE}/
     POST_RE = /#{S_RE}$/
 
-    # NOTE: CLASS_RE may not be correct.
-    CLASS_RE = /#{PRE_RE}(class|module)#{S_P_RE}(\w+)#{POST_RE}/
-    # NOTE: END_RE may not be correct.
-    END_RE   = /#{PRE_RE}end#{POST_RE}/
+    CLASS_RE   = /#{PRE_RE}(class|module)#{S_P_RE}(\w+)#{POST_RE}/
+    S_CLASS_RE = /#{PRE_RE}class#{S_P_RE}<<#{S_P_RE}\w+#{POST_RE}/
+    END_RE     = /#{PRE_RE}end#{POST_RE}/
 
     BEGIN_END_RE = /#{S_P_RE}(if|unless|do|while|until|case|for)(?:#{S_P_RE}.*)?$/
 
@@ -37,7 +36,6 @@ module Yard2steep
       .*
     /x
 
-    # NOTE: METHOD_RE may not be correct.
     METHOD_RE = /
       #{PRE_RE}
       def
@@ -51,8 +49,9 @@ module Yard2steep
     /x
 
     STATES = {
-      class:  "STATES.class",
-      method: "STATES.method",
+      class:   "STATES.class",
+      s_class: "STATES.s_class",  # singleton class
+      method:  "STATES.method",
     }
 
     ANY_TYPE = 'any'
@@ -64,10 +63,10 @@ module Yard2steep
       main = ClassNode::Main
       @ast = main
 
-      # Parser state
+      # Stack of parser state
+      @stack = [STATES[:class]]
+      # Parser state. Being last one of STATES in @stack.
       @state = STATES[:class]
-      # Stack stores begining keyword of end
-      @stack = []
 
       # NOTE: reset class context
       @current_class = main
@@ -97,11 +96,19 @@ module Yard2steep
       return if try_parse_end(l)
       return if try_parse_begin_end(l)
 
-      if @state == STATES[:class]
+      case @state
+      when STATES[:class]
         return if try_parse_class(l)
+        return if try_parse_singleton_class(l)
         return if try_parse_param(l)
         return if try_parse_return(l)
         return if try_parse_method(l)
+      when STATES[:s_class]
+        return if try_parse_method_with_no_action(l)
+      when STATES[:method]
+        # Do nothing
+      else
+        raise "invalid state: #{@state}"
       end
 
       # NOTE: Reach here when other case
@@ -110,21 +117,11 @@ module Yard2steep
     def try_parse_end(l)
       return false if !l.match?(END_RE)
 
-      if @stack.size == 0
+      if stack_is_empty?
         raise "Invalid end: #{@file}"
       end
 
-      last = @stack.pop
-      if STATES.values.include?(last)
-        case @state
-        when STATES[:method]
-          @state = STATES[:class]
-        when STATES[:class]
-          @current_class = @current_class.parent
-        else
-          raise "Invalid state: #{@state}"
-        end
-      end
+      pop_state!
 
       true
     end
@@ -133,7 +130,7 @@ module Yard2steep
       m = l.match(BEGIN_END_RE)
       return false if m.nil?
 
-      @stack.push(m[1])
+      push_state!(m[1])
 
       true
     end
@@ -153,7 +150,17 @@ module Yard2steep
       )
       @current_class.append_child(c)
       @current_class = c
-      @stack.push(STATES[:class])
+
+      push_state!(STATES[:class])
+
+      true
+    end
+
+    def try_parse_singleton_class(l)
+      m = l.match(S_CLASS_RE)
+      return false if m.nil?
+
+      push_state!(STATES[:s_class])
 
       true
     end
@@ -196,8 +203,19 @@ module Yard2steep
       )
       @current_class.append_m(m_node)
       reset_method_context!
-      @state = STATES[:method]
-      @stack.push(STATES[:method])
+
+      push_state!(STATES[:method])
+
+      true
+    end
+
+    def try_parse_method_with_no_action(l)
+      m = l.match(METHOD_RE)
+      return false if m.nil?
+
+      # Do no action
+
+      push_state!(STATES[:method])
 
       true
     end
@@ -232,6 +250,31 @@ module Yard2steep
           )
         end
       end
+    end
+
+    def push_state!(state)
+      if STATES.values.include?(state)
+        @state = state
+      end
+      @stack.push(state)
+    end
+
+    def pop_state!
+      state = @stack.pop
+      if STATES.values.include?(state)
+        # Restore prev class
+        if state == STATES[:class]
+          @current_class = @current_class.parent
+        end
+
+        # Restore prev state
+        @state = @stack.select { |s| STATES.values.include?(s) }.last
+        Util.assert! { !@state.nil? }
+      end
+    end
+
+    def stack_is_empty?
+      @stack.size <= 1
     end
 
     ##
