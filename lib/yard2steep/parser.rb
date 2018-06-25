@@ -58,6 +58,9 @@ module Yard2steep
     ANY_TYPE = 'any'
 
     def initialize
+      # NOTE: set at parse
+      @file = nil
+
       main = ClassNode::Main
       @ast = main
 
@@ -79,7 +82,8 @@ module Yard2steep
       @m_name  = nil
     end
 
-    def parse(text)
+    def parse(file, text)
+      @file = file
       text.split(/\n|;/).each do |l|
         parse_line(l)
       end
@@ -107,7 +111,7 @@ module Yard2steep
       return false if !l.match?(END_RE)
 
       if @stack.size == 0
-        raise "Invalid end: #{l}"
+        raise "Invalid end: #{@file}"
       end
 
       last = @stack.pop

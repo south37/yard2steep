@@ -44,10 +44,13 @@ module Yard2steep
     def translate!(f)
       text = File.read(f)
 
-      dst_file = File.join(dst_dir, f.gsub(/^#{Regexp.escape(src_dir)}/, ''))
+      dst_file = File.join(
+        dst_dir,
+        f.gsub(/^#{Regexp.escape(src_dir)}/, '').gsub(/\.rb$/, '.rbi')
+      )
       dst_dir  = File.dirname(dst_file)
       FileUtils.mkdir_p(dst_dir)
-      File.write(dst_file, Engine.execute(text))
+      File.write(dst_file, Engine.execute(f, text))
     end
   end
 end
