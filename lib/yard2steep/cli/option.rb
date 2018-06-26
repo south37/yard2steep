@@ -1,5 +1,3 @@
-require 'optparse'
-
 module Yard2steep
   class CLI
     class Option
@@ -11,10 +9,8 @@ module Yard2steep
       end
 
       def parse!(argv)
-        opt = OptionParser.new
-        opt.on('--src [src directory path]') { |v| @src = v }
-        opt.on('--dst [dst directory path]') { |v| @dst = v }
-        opt.parse!(argv)
+        @src = argv[0] if argv[0]
+        @dst = argv[1] if argv[1]
       end
     end
   end
