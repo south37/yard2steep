@@ -13,7 +13,7 @@ module Yard2steep
 
     BEGIN_END_RE = /
       #{S_P_RE}
-      (if|unless|do|while|until|case|for)
+      (if|unless|do|while|until|case|for|begin)
       (?:#{S_P_RE}.*)?
     $/x
 
@@ -58,7 +58,7 @@ module Yard2steep
       #{PRE_RE}
       def
       #{S_P_RE}
-      (\w+)
+      (\w+)\!?
       (
         (?:#{ARGS_RE})
         ?
@@ -75,6 +75,9 @@ module Yard2steep
     ANY_TYPE = 'any'
 
     def initialize
+      # Debug flag
+      @debug = false
+
       # NOTE: set at parse
       @file = nil
 
@@ -92,20 +95,26 @@ module Yard2steep
       reset_method_context!
     end
 
-    def reset_method_context!
-      # Current method context. Flushed when method definition is parsed.
-      @p_types = {}
-      @r_type  = nil
-      @m_name  = nil
-    end
+    def parse(file, text, debug: false)
+      @debug = debug
 
-    def parse(file, text)
+      debug_print!("Start parsing: #{file}")
+
       @file = file
       text.split(/\n|;/).each do |l|
         parse_line(l)
       end
 
       @ast
+    end
+
+  private
+
+    def reset_method_context!
+      # Current method context. Flushed when method definition is parsed.
+      @p_types = {}
+      @r_type  = nil
+      @m_name  = nil
     end
 
     # NOTE: Current implementation override `@p_type`, `@r_type` if it appears
@@ -135,6 +144,9 @@ module Yard2steep
     def try_parse_end(l)
       return false if !l.match?(END_RE)
 
+      # NOTE: Print before pop state, so offset is -2
+      debug_print!("end", offset: -2)
+
       if stack_is_empty?
         raise "Invalid end: #{@file}"
       end
@@ -148,6 +160,8 @@ module Yard2steep
       m = l.match(BEGIN_END_RE)
       return false if m.nil?
 
+      debug_print!(m[1])
+
       push_state!(m[1])
 
       true
@@ -156,6 +170,8 @@ module Yard2steep
     def try_parse_class(l)
       m = l.match(CLASS_RE)
       return false if m.nil?
+
+      debug_print!("#{m[1]} #{m[2]}")
 
       # NOTE: If class definition is found before method definition, yard
       # annotation is ignored.
@@ -177,6 +193,8 @@ module Yard2steep
     def try_parse_singleton_class(l)
       m = l.match(S_CLASS_RE)
       return false if m.nil?
+
+      debug_print!("class <<")
 
       push_state!(STATES[:s_class])
 
@@ -209,6 +227,8 @@ module Yard2steep
       m = l.match(METHOD_RE)
       return false if m.nil?
 
+      debug_print!("def #{m[1]}")
+
       Util.assert! { m[1].is_a?(String) && m[2].is_a?(String) }
 
       @m_name = m[1]
@@ -230,6 +250,8 @@ module Yard2steep
     def try_parse_method_with_no_action(l)
       m = l.match(METHOD_RE)
       return false if m.nil?
+
+      debug_print!("def #{m[1]}")
 
       # Do no action
 
@@ -299,6 +321,10 @@ module Yard2steep
     # Helper
     def type_node(p)
       @p_types[p] || AST::PTypeNode.new(p_type: ANY_TYPE, p_name: p)
+    end
+
+    def debug_print!(message, offset: 0)
+      print "#{' ' * (@stack.size * 2 + offset)}#{message}\n" if @debug
     end
 
     ARRAY_TYPE_RE = /^
