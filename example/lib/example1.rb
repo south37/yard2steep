@@ -26,16 +26,36 @@ class MyClass
     'name'
   end
 
-  # @param [String] contents
+  # @return [Array(Symbol, Symbol)]
+  def pair
+    [:ok, :no]
+  end
+
+  # @return [Array(Symbol, Integer)]
+  def type
+    [:number, 1]
+  end
+
+  # @return [Hash]
+  def opts
+    {}
+  end
+
+  # @return [Hash{ Symbol => Integer, nil }]
+  def values
+    { ok: 3, no: nil }
+  end
+
+  # @param [Array<Integer>] contents
   # @param [Symbol] order
-  # @return [String]
+  # @return [Array<Integer>]
   def reverse contents, order:
     if order == :normal
-      return ''
+      return []
     end
 
     case order
-    when :other then return ''
+    when :other then return []
     else
       raise "invalid"
     end
@@ -44,7 +64,7 @@ class MyClass
     # .
     # NOTE: this is wrong comment. so should ignore it
     # @param [Array] contents
-    ''
+    []
   end
 
   # NOTE: should be interpreterd as any -> any

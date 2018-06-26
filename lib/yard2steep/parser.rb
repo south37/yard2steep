@@ -170,7 +170,7 @@ module Yard2steep
       return false if m.nil?
 
       p = PTypeNode.new(
-        p_type: m[1],
+        p_type: normalize_type(m[1]),
         p_name: m[2],
       )
       @p_types[p.p_name] = p
@@ -182,7 +182,7 @@ module Yard2steep
       m = l.match(RETURN_RE)
       return false if m.nil?
 
-      @r_type = m[1]
+      @r_type = normalize_type(m[1])
 
       true
     end
@@ -281,6 +281,68 @@ module Yard2steep
     # Helper
     def type_node(p)
       @p_types[p] || PTypeNode.new(p_type: ANY_TYPE, p_name: p)
+    end
+
+    ARRAY_TYPE_RE = /^
+      Array
+      #{S_RE}
+      <
+        ([^>]+)
+      >
+      #{S_RE}
+    $/x
+    FIXED_ARRAY_TYPE_RE = /^
+      Array
+      #{S_RE}
+      \(
+        ([^)]+)
+      \)
+      #{S_RE}
+    $/x
+    HASH_TYPE_RE = /^
+      Hash
+      #{S_RE}
+      \{
+        #{S_RE}
+        ([^=]+)
+        #{S_RE}
+        =>
+        #{S_RE}
+        ([^}]+)
+        #{S_RE}
+      \}
+      #{S_RE}
+    $/x
+
+    # NOTE: normalize type to steep representation
+    # TODO(south37): impl for `Hash{..=>..}`, `Array()`, etc.
+    # cf. https://yardoc.org/types.html#see_results
+    def normalize_type(type)
+      if type[0..4] == 'Array'.freeze
+        if type == 'Array'.freeze
+          'Array<any>'.freeze
+        elsif (m = ARRAY_TYPE_RE.match(type))
+          "Array<#{normalize_multi_type(m[1])}>"
+        elsif (m = FIXED_ARRAY_TYPE_RE.match(type))
+          "Array<#{normalize_multi_type(m[1])}>"
+        else
+          raise "invalid Array type: #{type}"
+        end
+      elsif type[0..3] == 'Hash'.freeze
+        if type == 'Hash'.freeze
+          'Hash<any, any>'.freeze
+        elsif (m = HASH_TYPE_RE.match(type))
+          "Hash<#{normalize_multi_type(m[1])}, #{normalize_multi_type(m[2])}>"
+        else
+          raise "invalid Hash type: #{type}"
+        end
+      else
+        normalize_multi_type(type)
+      end
+    end
+
+    def normalize_multi_type(type_s)
+      type_s.split(',').map(&:strip).uniq.join(' | ')
     end
   end
 end

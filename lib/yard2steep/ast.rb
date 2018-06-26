@@ -75,7 +75,7 @@ module Yard2steep
     attr_accessor :p_type, :p_name
 
     def initialize(p_type:, p_name:)
-      # TODO(south37) if p_type is nil, Use `Any` type
+      Util.assert! { p_type.is_a?(String) }
       Util.assert! { p_name.is_a?(String) }
       @p_type = p_type
       @p_name = p_name
