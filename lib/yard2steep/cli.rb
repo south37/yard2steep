@@ -2,10 +2,8 @@ require 'yard2steep/cli/option'
 
 module Yard2steep
   class CLI
-    class << self
-      def run!(argv)
-        CLI.new(argv).run!
-      end
+    def self.run!(argv)
+      CLI.new(argv).run!
     end
 
     def initialize(argv)

@@ -2,19 +2,17 @@ module Yard2steep
   module AST
     # AST::ClassNode represents `Class` or `Module` AST.
     class ClassNode
+      def self.create_main
+        AST::ClassNode.new(
+          kind:   'module',
+          c_name: 'main',
+          parent: nil,
+        )
+      end
+
       attr_accessor :kind, :c_name, :m_list, :children, :parent
 
       KIND = ['class', 'module']
-
-      class << self
-        def create_main
-          AST::ClassNode.new(
-            kind:   'module',
-            c_name: 'main',
-            parent: nil,
-          )
-        end
-      end
 
       def initialize(kind:, c_name:, parent:)
         Util.assert! { KIND.include?(kind) }
