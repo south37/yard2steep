@@ -68,7 +68,7 @@ class MyClass
   end
 
   # NOTE: should be interpreterd as any -> any
-  def first(list)
+  def first!(list)
     list.last
   end
 
