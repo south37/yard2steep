@@ -70,7 +70,11 @@ module Yard2steep
       #{PRE_RE}
       def
       #{S_P_RE}
-      (\w+\!?)
+      (
+        (?:\w+\.)?
+        \w+
+        \!?
+      )
       #{S_RE}
       (
         (?:#{ARGS_RE})

@@ -23,6 +23,11 @@ class MyClass
   end
 
   # @return [String]
+  def self.name
+    'name'
+  end
+
+  # @return [String]
   def name
     'name'
   end

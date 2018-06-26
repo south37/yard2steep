@@ -1,4 +1,5 @@
 class MyClass
+  def self.name: -> String
   def name: -> String
   def pair: -> Array<Symbol>
   def type: -> Array<Symbol | Integer>
