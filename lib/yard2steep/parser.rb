@@ -33,7 +33,7 @@ module Yard2steep
     # TODO(south37) `POSTFIX_IF_RE` is wrong. Fix it.
     POSTFIX_IF_RE = /
       #{PRE_RE}
-      (?:return|break|next)
+      (?:return|break|next|p|print|raise)
       #{S_P_RE}
       .*
       (?:if|unless)
