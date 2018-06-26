@@ -157,6 +157,9 @@ module Yard2steep
     # NOTE: Current implementation override `@p_type`, `@r_type` if it appears
     # multiple times before method definition.
     def parse_line(l)
+      # At first, try parsing comment
+      return if try_parse_comment(l)
+
       return if try_parse_end(l)
       return if try_parse_postfix_if(l)
       return if try_parse_begin_end(l)
@@ -165,8 +168,6 @@ module Yard2steep
       when STATES[:class]
         return if try_parse_class(l)
         return if try_parse_singleton_class(l)
-        return if try_parse_param(l)
-        return if try_parse_return(l)
         return if try_parse_method(l)
       when STATES[:s_class]
         return if try_parse_method_with_no_action(l)
@@ -177,6 +178,21 @@ module Yard2steep
       end
 
       # NOTE: Reach here when other case
+    end
+
+    def try_parse_comment(l)
+      return false if !l.match?(COMMENT_RE)
+
+      try_parse_param_or_return(l)
+
+      true
+    end
+
+    def try_parse_param_or_return(l)
+      if @state == STATES[:class]
+        return if try_parse_param(l)
+        return if try_parse_return(l)
+      end
     end
 
     def try_parse_end(l)
