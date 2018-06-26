@@ -15,7 +15,8 @@ module Yard2steep
       traverse_dir!(src_dir)
     end
 
-  private
+  # NOTE: steep cause error when `private` is used. So we does not use it.
+  # private
 
     def src_dir
       @src_dir ||= File.expand_path(@option.src)
