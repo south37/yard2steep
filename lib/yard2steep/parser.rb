@@ -60,7 +60,7 @@ module Yard2steep
       # NOTE: set at parse
       @file = nil
 
-      main = ClassNode::Main
+      main = AST::ClassNode::Main
       @ast = main
 
       # Stack of parser state
@@ -143,7 +143,7 @@ module Yard2steep
       # annotation is ignored.
       reset_method_context!
 
-      c = ClassNode.new(
+      c = AST::ClassNode.new(
         kind:   m[1],
         c_name: m[2],
         parent: @current_class,
@@ -169,7 +169,7 @@ module Yard2steep
       m = l.match(PARAM_RE)
       return false if m.nil?
 
-      p = PTypeNode.new(
+      p = AST::PTypeNode.new(
         p_type: normalize_type(m[1]),
         p_name: m[2],
       )
@@ -196,7 +196,7 @@ module Yard2steep
       @m_name = m[1]
       p_list = parse_method_params(m[2].strip)
 
-      m_node = MethodNode.new(
+      m_node = AST::MethodNode.new(
         p_list: p_list,
         r_type: (@r_type || ANY_TYPE),
         m_name: @m_name,
@@ -239,14 +239,14 @@ module Yard2steep
         if p.include?(':')
           # TODO: Add warn when value exists
           name = p.split(':')[0]
-          PNode.new(
+          AST::PNode.new(
             type_node: type_node(name),
-            style:     PNode::STYLE[:keyword],
+            style:     AST::PNode::STYLE[:keyword],
           )
         else
-          PNode.new(
+          AST::PNode.new(
             type_node: type_node(p),
-            style:     PNode::STYLE[:normal],
+            style:     AST::PNode::STYLE[:normal],
           )
         end
       end
@@ -280,7 +280,7 @@ module Yard2steep
     ##
     # Helper
     def type_node(p)
-      @p_types[p] || PTypeNode.new(p_type: ANY_TYPE, p_name: p)
+      @p_types[p] || AST::PTypeNode.new(p_type: ANY_TYPE, p_name: p)
     end
 
     ARRAY_TYPE_RE = /^

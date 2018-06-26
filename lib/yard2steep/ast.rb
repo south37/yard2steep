@@ -1,84 +1,9 @@
+require 'yard2steep/ast/class_node'
+require 'yard2steep/ast/method_node'
+require 'yard2steep/ast/p_node'
+require 'yard2steep/ast/p_type_node'
+
 module Yard2steep
-  # ClassNode represents `Class` or `Module` AST.
-  class ClassNode
-    attr_accessor :kind, :c_name, :m_list, :children, :parent
-
-    KIND = ['class', 'module']
-
-    def initialize(kind:, c_name:, parent:)
-      Util.assert! { KIND.include?(kind) }
-      Util.assert! { c_name.is_a?(String) }
-      Util.assert! { parent.is_a?(ClassNode) || (parent.nil? && c_name == 'main') }
-      @kind     = kind
-      @c_name   = c_name
-      @m_list   = []
-      @children = []
-      @parent   = parent
-    end
-
-    def append_m(m)
-      @m_list.push(m)
-    end
-
-    def append_child(child)
-      @children.push(child)
-    end
-
-    def long_name
-      @long_name ||= begin
-         # NOTE: main has no long_name
-         if @c_name == 'main'
-           ''
-         elsif @parent.c_name == 'main'
-           @c_name
-         else
-           "#{@parent.long_name}::#{@c_name}"
-         end
-      end
-    end
-  end
-
-  ClassNode::Main = ClassNode.new(kind: 'module', c_name: 'main', parent: nil)
-
-  # MethodNode represents `method` AST.
-  class MethodNode
-    attr_accessor :p_list, :r_type, :m_name
-
-    def initialize(m_name:, p_list:, r_type:)
-      Util.assert! { m_name.is_a?(String) }
-      Util.assert! { p_list.is_a?(Array) }
-      Util.assert! { r_type.is_a?(String) }
-      @p_list = p_list
-      @r_type = r_type
-      @m_name = m_name
-    end
-  end
-
-  class PNode
-    attr_accessor :type_node, :style
-
-    STYLE = {
-      normal:  "STYLE.normal",
-      keyword: "STYLE.keyword",
-    }
-
-    def initialize(type_node:, style:)
-      Util.assert! { type_node.is_a?(PTypeNode) }
-      Util.assert! { STYLE.values.include?(style) }
-      @type_node = type_node
-      @style     = style
-    end
-  end
-
-  # PTypeNode represents `parameter` AST.
-  class PTypeNode
-    attr_accessor :p_type, :p_name
-
-    def initialize(p_type:, p_name:)
-      Util.assert! { p_type.is_a?(String) }
-      Util.assert! { p_name.is_a?(String) }
-      @p_type = p_type
-      @p_name = p_name
-    end
+  module AST
   end
 end

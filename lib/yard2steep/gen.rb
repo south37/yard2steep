@@ -23,7 +23,7 @@ module Yard2steep
     end
 
     def gen_c!(c_node, off:)
-      Util.assert! { c_node.is_a?(ClassNode) }
+      Util.assert! { c_node.is_a?(AST::ClassNode) }
 
       # TODO(south37) We should check `main` by class_node's type (not name).
       if c_node.c_name == 'main'
@@ -51,7 +51,7 @@ module Yard2steep
     end
 
     def gen_m!(m_node, off:)
-      Util.assert! { m_node.is_a?(MethodNode) }
+      Util.assert! { m_node.is_a?(AST::MethodNode) }
       emit! "def #{m_node.m_name}: ", off: off
       len = m_node.p_list.size
       if len > 0
@@ -73,9 +73,9 @@ module Yard2steep
       t = p_node.type_node
 
       case p_node.style
-      when PNode::STYLE[:normal]
+      when AST::PNode::STYLE[:normal]
         emit! t.p_type
-      when PNode::STYLE[:keyword]
+      when AST::PNode::STYLE[:keyword]
         emit! "#{t.p_name}: #{t.p_type}"
       else
         raise "invalid style: #{p_node.style}"
