@@ -9,6 +9,7 @@ class MyClass
   def first!: (any) -> any
   def present?: (any) -> any
 end
+MyClass::CONSTANT: any
 module MyClass::InnerClass
   def double: (source: Integer) -> Integer
 end

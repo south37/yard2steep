@@ -30,6 +30,17 @@ module Yard2steep
     S_CLASS_RE = /#{PRE_RE}class#{S_P_RE}<<#{S_P_RE}\w+#{POST_RE}/
     END_RE     = /#{PRE_RE}end#{POST_RE}/
 
+    CONSTANT_ASSIGN_RE = /
+      #{PRE_RE}
+      (
+        [A-Z\d_]+
+      )
+      #{S_RE}
+      =
+      .*
+      #{POST_RE}
+    /x
+
     # TODO(south37) `POSTFIX_IF_RE` is wrong. Fix it.
     POSTFIX_IF_RE = /
       #{PRE_RE}
@@ -166,6 +177,7 @@ module Yard2steep
 
       case @state
       when STATES[:class]
+        return if try_parse_constant(l)
         return if try_parse_class(l)
         return if try_parse_singleton_class(l)
         return if try_parse_method(l)
@@ -246,6 +258,18 @@ module Yard2steep
 
       push_state!(STATES[:class])
 
+      true
+    end
+
+    def try_parse_constant(l)
+      m = l.match(CONSTANT_ASSIGN_RE)
+      return false if m.nil?
+
+      c = AST::ConstantNode.new(
+        name:  m[1],
+        klass: @current_class,
+      )
+      @current_class.append_constant(c)
       true
     end
 

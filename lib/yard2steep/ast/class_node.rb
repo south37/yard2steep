@@ -10,7 +10,7 @@ module Yard2steep
         )
       end
 
-      attr_accessor :kind, :c_name, :m_list, :children, :parent
+      attr_accessor :kind, :c_name, :c_list, :m_list, :children, :parent
 
       KIND = ['class', 'module']
 
@@ -23,9 +23,14 @@ module Yard2steep
         }
         @kind     = kind
         @c_name   = c_name
-        @m_list   = []
-        @children = []
+        @c_list   = []  # list of constants
+        @m_list   = []  # list of methods
+        @children = []  # list of child classes
         @parent   = parent
+      end
+
+      def append_constant(c)
+        @c_list.push(c)
       end
 
       def append_m(m)
@@ -57,6 +62,7 @@ module Yard2steep
         <<-EOF
 {
   #{@kind}: #{c_name},
+  c_list: [#{@c_list.map(&:to_s).map { |s| "#{s}\n" }.join}],
   m_list: [#{@m_list.map(&:to_s).map { |s| "#{s}\n" }.join}],
   children: [#{@children.map(&:to_s).map { |s| "#{s}\n" }.join}],
 }

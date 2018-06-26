@@ -7,7 +7,7 @@ module Yard2steep
     end
 
     def gen(ast)
-      gen_c!(ast, off: 0)
+      gen_child!(ast, off: 0)
 
       @out.rewind
       @out.read
@@ -22,14 +22,14 @@ module Yard2steep
       end
     end
 
-    def gen_c!(c_node, off:)
+    def gen_child!(c_node, off:)
       Util.assert! { c_node.is_a?(AST::ClassNode) }
 
       # TODO(south37) We should check `main` by class_node's type (not name).
       if c_node.c_name == 'main'
         # NOTE: In main, steep does not check method type, so we does not
         # generate type definition of methods.
-        gen_c_list!(c_node, off: 0)
+        gen_children!(c_node, off: 0)
       else
         if c_node.m_list.size > 0
           emit! "#{c_node.kind} #{c_node.long_name}\n", off: off
@@ -37,6 +37,7 @@ module Yard2steep
           emit! "end\n", off: off
         end
         gen_c_list!(c_node, off: off)
+        gen_children!(c_node, off: off)
       end
     end
 
@@ -47,9 +48,21 @@ module Yard2steep
     end
 
     def gen_c_list!(c_node, off:)
-      c_node.children.each do |c_node|
+      c_node.c_list.each do |c_node|
         gen_c!(c_node, off: off)
       end
+    end
+
+    def gen_children!(c_node, off:)
+      c_node.children.each do |child|
+        gen_child!(child, off: off)
+      end
+    end
+
+    def gen_c!(c_node, off:)
+      Util.assert! { c_node.is_a?(AST::ConstantNode) }
+      # NOTE: Use any as constant type.
+      emit! "#{c_node.long_name}: any\n", off: off
     end
 
     def gen_m!(m_node, off:)

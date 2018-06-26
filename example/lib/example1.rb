@@ -22,6 +22,8 @@ class MyClass
     end
   end
 
+  CONSTANT = "This is constant".freeze
+
   # This for should not be used.
   # @return [String]
   def self.name
