@@ -85,3 +85,9 @@ class MyClass
     def double(source:); source * 2; end
   end
 end
+
+class OtherClass < MyClass
+  def yes
+    'yes'
+  end
+end

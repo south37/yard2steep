@@ -11,3 +11,6 @@ end
 module MyClass::InnerClass
   def double: (source: Integer) -> Integer
 end
+class OtherClass
+  def yes: -> any
+end

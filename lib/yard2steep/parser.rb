@@ -7,7 +7,26 @@ module Yard2steep
     PRE_RE  = /^#{S_RE}/
     POST_RE = /#{S_RE}$/
 
-    CLASS_RE   = /#{PRE_RE}(class|module)#{S_P_RE}(\w+)#{POST_RE}/
+    CLASS_RE = /
+      #{PRE_RE}
+      (class)
+      #{S_P_RE}
+      (\w+)
+      (?:
+        #{S_P_RE}
+        <
+        #{S_P_RE}
+        \w+
+      )?
+      #{POST_RE}
+    /x
+    MODULE_RE = /
+      #{PRE_RE}
+      (module)
+      #{S_P_RE}
+      (\w+)
+      #{POST_RE}
+    /x
     S_CLASS_RE = /#{PRE_RE}class#{S_P_RE}<<#{S_P_RE}\w+#{POST_RE}/
     END_RE     = /#{PRE_RE}end#{POST_RE}/
 
@@ -192,7 +211,7 @@ module Yard2steep
     end
 
     def try_parse_class(l)
-      m = l.match(CLASS_RE)
+      m = (l.match(MODULE_RE) || l.match(CLASS_RE))
       return false if m.nil?
 
       debug_print!("#{m[1]} #{m[2]}")
