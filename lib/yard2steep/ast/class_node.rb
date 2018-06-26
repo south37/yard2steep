@@ -6,6 +6,16 @@ module Yard2steep
 
       KIND = ['class', 'module']
 
+      class << self
+        def create_main
+          AST::ClassNode.new(
+            kind:   'module',
+            c_name: 'main',
+            parent: nil,
+          )
+        end
+      end
+
       def initialize(kind:, c_name:, parent:)
         Util.assert! { KIND.include?(kind) }
         Util.assert! { c_name.is_a?(String) }
@@ -40,12 +50,20 @@ module Yard2steep
            end
         end
       end
-    end
 
-    AST::ClassNode::Main = AST::ClassNode.new(
-      kind:   'module',
-      c_name: 'main',
-      parent: nil,
-    )
+      def to_s
+        inspect
+      end
+
+      def inspect
+        <<-EOF
+{
+  #{@kind}: #{c_name},
+  m_list: [#{@m_list.map(&:to_s).map { |s| "#{s}\n" }.join}],
+  children: [#{@children.map(&:to_s).map { |s| "#{s}\n" }.join}],
+}
+        EOF
+      end
+    end
   end
 end

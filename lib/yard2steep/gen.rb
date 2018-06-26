@@ -3,7 +3,7 @@ require 'yard2steep/util'
 module Yard2steep
   class Gen
     def initialize
-      @out = StringIO.new('')  # Output buffer
+      @out = StringIO.new # Output buffer
     end
 
     def gen(ast)

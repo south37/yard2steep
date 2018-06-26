@@ -81,7 +81,7 @@ module Yard2steep
       # NOTE: set at parse
       @file = nil
 
-      main = AST::ClassNode::Main
+      main = AST::ClassNode.create_main
       @ast = main
 
       # Stack of parser state

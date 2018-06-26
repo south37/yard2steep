@@ -50,7 +50,13 @@ module Yard2steep
       )
       dst_dir  = File.dirname(dst_file)
       FileUtils.mkdir_p(dst_dir)
-      File.write(dst_file, Engine.execute(f, text, debug: @option.debug))
+      result = Engine.execute(
+        f,
+        text,
+        debug:     @option.debug,
+        debug_ast: @option.debug_ast,
+      )
+      File.write(dst_file, result)
     end
   end
 end
