@@ -11,6 +11,18 @@ module Yard2steep
     S_CLASS_RE = /#{PRE_RE}class#{S_P_RE}<<#{S_P_RE}\w+#{POST_RE}/
     END_RE     = /#{PRE_RE}end#{POST_RE}/
 
+    # TODO(south37) `POSTFIX_IF_RE` is wrong. Fix it.
+    POSTFIX_IF_RE = /
+      #{PRE_RE}
+      (?:return|break|next)
+      #{S_P_RE}
+      .*
+      (?:if|unless)
+      #{S_P_RE}
+      .*
+      $
+    /x
+
     BEGIN_END_RE = /
       #{S_P_RE}
       (if|unless|do|while|until|case|for|begin)
@@ -123,6 +135,7 @@ module Yard2steep
     # multiple times before method definition.
     def parse_line(l)
       return if try_parse_end(l)
+      return if try_parse_postfix_if(l)
       return if try_parse_begin_end(l)
 
       case @state
@@ -156,6 +169,11 @@ module Yard2steep
       pop_state!
 
       true
+    end
+
+    # NOTE: This implementation is wrong. Used only for skipping postfix if.
+    def try_parse_postfix_if(l)
+      l.match?(POSTFIX_IF_RE)
     end
 
     def try_parse_begin_end(l)

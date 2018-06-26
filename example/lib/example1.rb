@@ -17,6 +17,7 @@ class MyClass
   class << self
     # @return [String]
     def ok
+      return 'no' if true
       'ok'
     end
   end
