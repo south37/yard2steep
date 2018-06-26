@@ -301,12 +301,18 @@ module Yard2steep
 
       params_s.split(',').map(&:strip).map do |p|
         if p.include?(':')
-          # TODO: Add warn when value exists
-          name = p.split(':')[0]
-          AST::PNode.new(
-            type_node: type_node(name),
-            style:     AST::PNode::STYLE[:keyword],
-          )
+          name, default_value = p.split(':')
+          if default_value
+            AST::PNode.new(
+              type_node: type_node(name),
+              style:     AST::PNode::STYLE[:keyword_with_default],
+            )
+          else
+            AST::PNode.new(
+              type_node: type_node(name),
+              style:     AST::PNode::STYLE[:keyword],
+            )
+          end
         else
           AST::PNode.new(
             type_node: type_node(p),

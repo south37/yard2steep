@@ -79,6 +79,8 @@ module Yard2steep
         emit! t.p_type
       when AST::PNode::STYLE[:keyword]
         emit! "#{t.p_name}: #{t.p_type}"
+      when AST::PNode::STYLE[:keyword_with_default]
+        emit! "?#{t.p_name}: #{t.p_type}"
       else
         raise "invalid style: #{p_node.style}"
       end

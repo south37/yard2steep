@@ -4,8 +4,9 @@ module Yard2steep
       attr_accessor :type_node, :style
 
       STYLE = {
-        normal:  "STYLE.normal",
-        keyword: "STYLE.keyword",
+        normal:               "STYLE.normal",
+        keyword:              "STYLE.keyword",
+        keyword_with_default: "STYLE.keyword_with_default",
       }
 
       def initialize(type_node:, style:)

@@ -4,7 +4,7 @@ class MyClass
   def pair: -> Array<Symbol>
   def type: -> Array<Symbol | Integer>
   def opts: -> Hash<any, any>
-  def values: -> Hash<Symbol, Integer | nil>
+  def values: (?off: Integer) -> Hash<Symbol, Integer | nil>
   def reverse: (Array<Integer>, order: Symbol) -> Array<Integer>
   def first!: (any) -> any
 end

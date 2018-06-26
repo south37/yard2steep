@@ -47,8 +47,9 @@ class MyClass
     {}
   end
 
+  # @param [Integer] off
   # @return [Hash{ Symbol => Integer, nil }]
-  def values
+  def values(off: 0)
     { ok: 3, no: nil }
   end
 
