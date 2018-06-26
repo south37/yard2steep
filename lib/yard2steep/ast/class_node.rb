@@ -9,7 +9,10 @@ module Yard2steep
       def initialize(kind:, c_name:, parent:)
         Util.assert! { KIND.include?(kind) }
         Util.assert! { c_name.is_a?(String) }
-        Util.assert! { parent.is_a?(AST::ClassNode) || (parent.nil? && c_name == 'main') }
+        Util.assert! {
+          parent.is_a?(AST::ClassNode) ||
+          (parent.nil? && c_name == 'main')
+        }
         @kind     = kind
         @c_name   = c_name
         @m_list   = []
@@ -39,6 +42,10 @@ module Yard2steep
       end
     end
 
-    AST::ClassNode::Main = AST::ClassNode.new(kind: 'module', c_name: 'main', parent: nil)
+    AST::ClassNode::Main = AST::ClassNode.new(
+      kind:   'module',
+      c_name: 'main',
+      parent: nil,
+    )
   end
 end

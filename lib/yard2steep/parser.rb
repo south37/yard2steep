@@ -11,13 +11,31 @@ module Yard2steep
     S_CLASS_RE = /#{PRE_RE}class#{S_P_RE}<<#{S_P_RE}\w+#{POST_RE}/
     END_RE     = /#{PRE_RE}end#{POST_RE}/
 
-    BEGIN_END_RE = /#{S_P_RE}(if|unless|do|while|until|case|for)(?:#{S_P_RE}.*)?$/
+    BEGIN_END_RE = /
+      #{S_P_RE}
+      (if|unless|do|while|until|case|for)
+      (?:#{S_P_RE}.*)?
+    $/x
 
     COMMENT_RE         = /#{PRE_RE}#/
     TYPE_WITH_PAREN_RE = /\[([^\]]*)\]/
 
-    PARAM_RE  = /#{COMMENT_RE}#{S_P_RE}@param#{S_P_RE}#{TYPE_WITH_PAREN_RE}#{S_P_RE}(\w+)/
-    RETURN_RE = /#{COMMENT_RE}#{S_P_RE}@return#{S_P_RE}#{TYPE_WITH_PAREN_RE}/
+    PARAM_RE  = /
+      #{COMMENT_RE}
+      #{S_P_RE}
+      @param
+      #{S_P_RE}
+      #{TYPE_WITH_PAREN_RE}
+      #{S_P_RE}
+      (\w+)
+    /x
+    RETURN_RE = /
+      #{COMMENT_RE}
+      #{S_P_RE}
+      @return
+      #{S_P_RE}
+      #{TYPE_WITH_PAREN_RE}
+    /x
 
     PAREN_RE = /
       \(
@@ -315,8 +333,6 @@ module Yard2steep
     $/x
 
     # NOTE: normalize type to steep representation
-    # TODO(south37): impl for `Hash{..=>..}`, `Array()`, etc.
-    # cf. https://yardoc.org/types.html#see_results
     def normalize_type(type)
       if type[0..4] == 'Array'.freeze
         if type == 'Array'.freeze
