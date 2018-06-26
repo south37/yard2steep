@@ -80,6 +80,11 @@ class MyClass
     list.last
   end
 
+  # NOTE: should be interpreterd as any -> any
+  def present?(list)
+    list.size > 0
+  end
+
   module InnerClass
     # @param [Integer] source
     # @return [Integer]

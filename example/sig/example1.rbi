@@ -7,6 +7,7 @@ class MyClass
   def values: (?off: Integer) -> Hash<Symbol, Integer | nil>
   def reverse: (Array<Integer>, order: Symbol) -> Array<Integer>
   def first!: (any) -> any
+  def present?: (any) -> any
 end
 module MyClass::InnerClass
   def double: (source: Integer) -> Integer
