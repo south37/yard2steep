@@ -1,8 +1,8 @@
 # Yard2steep
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/yard2steep`. To experiment with that code, run `bin/console` for an interactive prompt.
+Generate steep type definition file from yard annotation.
 
-TODO: Delete this and the text above, and describe your gem
+:warning: **This is highly experimental project. Current version is 0.1.0.**
 
 ## Installation
 
@@ -22,7 +22,54 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+`yard2steep` generates steep type definition file from yard annotation.
+
+```console
+$ yard2steep lib sig
+```
+
+```ruby
+# lib/parser.rb
+class AST
+  # @return [String]
+  def to_s
+    # Do something
+    "AST"
+  end
+end
+
+class Parser
+  # @param [String] text
+  # @return [AST]
+  def parse(text)
+    ast = AST.new
+    # Do something
+    ast
+  end
+end
+```
+
+`sig/parser.rbi` is generated.
+
+```ruby
+# sig/parser.rbi
+class AST
+  def to_s: -> String
+end
+class Parser
+  def parse: (String) -> AST
+end
+```
+
+After generating `.rbi` file, we can run `steep check` command to type check.
+
+```
+$ steep check lib -I sig
+```
+
+Congraturation! :tada:
+You did type checking by yard annotation!
+
 
 ## Development
 
