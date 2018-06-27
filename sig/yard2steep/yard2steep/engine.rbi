@@ -1,3 +1,3 @@
 class Yard2steep::Engine
-  def self.execute: (any, any, ?debug: any, ?debug_ast: any) -> any
+  def self.execute: (String, String, ?debug: bool, ?debug_ast: bool) -> String
 end

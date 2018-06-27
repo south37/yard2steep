@@ -152,6 +152,10 @@ module Yard2steep
       reset_method_context!
     end
 
+    # @param [String] file
+    # @param [String] text
+    # @param [bool] debug
+    # @return [AST::ClassNode]
     def parse(file, text, debug: false)
       @debug = debug
 
@@ -167,6 +171,7 @@ module Yard2steep
 
   private
 
+    # @return [void]
     def reset_method_context!
       # Current method context. Flushed when method definition is parsed.
       @p_types = {}
@@ -176,6 +181,9 @@ module Yard2steep
 
     # NOTE: Current implementation override `@p_type`, `@r_type` if it appears
     # multiple times before method definition.
+    #
+    # @param [String] l
+    # @return [void]
     def parse_line(l)
       # At first, try parsing comment
       return if try_parse_comment(l)
@@ -202,14 +210,18 @@ module Yard2steep
       # NOTE: Reach here when other case
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_comment(l)
-      return false if !l.match?(COMMENT_RE)
+      return false unless l.match?(COMMENT_RE)
 
       try_parse_param_or_return(l)
 
       true
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_param_or_return(l)
       if @state == STATES[:class]
         return if try_parse_param(l)
@@ -217,8 +229,10 @@ module Yard2steep
       end
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_end(l)
-      return false if !l.match?(END_RE)
+      return false unless l.match?(END_RE)
 
       # NOTE: Print before pop state, so offset is -2
       debug_print!("end", offset: -2)
@@ -233,13 +247,18 @@ module Yard2steep
     end
 
     # NOTE: This implementation is wrong. Used only for skipping postfix if.
+    #
+    # @param [String] l
+    # @return [bool]
     def try_parse_postfix_if(l)
       l.match?(POSTFIX_IF_RE)
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_begin_end(l)
       m = l.match(BEGIN_END_RE)
-      return false if m.nil?
+      return false unless m
 
       debug_print!(m[1])
 
@@ -248,9 +267,11 @@ module Yard2steep
       true
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_class(l)
       m = (l.match(MODULE_RE) || l.match(CLASS_RE))
-      return false if m.nil?
+      return false unless m
 
       debug_print!("#{m[1]} #{m[2]}")
 
@@ -271,9 +292,11 @@ module Yard2steep
       true
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_constant(l)
       m = l.match(CONSTANT_ASSIGN_RE)
-      return false if m.nil?
+      return false unless m
 
       c = AST::ConstantNode.new(
         name:  m[1],
@@ -283,9 +306,11 @@ module Yard2steep
       true
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_singleton_class(l)
       m = l.match(S_CLASS_RE)
-      return false if m.nil?
+      return false unless m
 
       debug_print!("class <<")
 
@@ -294,9 +319,11 @@ module Yard2steep
       true
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_param(l)
       m = l.match(PARAM_RE)
-      return false if m.nil?
+      return false unless m
 
       p = AST::PTypeNode.new(
         p_type: normalize_type(m[1]),
@@ -308,18 +335,22 @@ module Yard2steep
       true
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_return(l)
       m = l.match(RETURN_RE)
-      return false if m.nil?
+      return false unless m
 
       @r_type = normalize_type(m[1])
 
       true
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_method(l)
       m = l.match(METHOD_RE)
-      return false if m.nil?
+      return false unless m
 
       debug_print!("def #{m[1]}")
 
@@ -341,9 +372,11 @@ module Yard2steep
       true
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_method_with_no_action(l)
       m = l.match(METHOD_RE)
-      return false if m.nil?
+      return false unless m
 
       debug_print!("def #{m[1]}")
 
@@ -354,6 +387,8 @@ module Yard2steep
       true
     end
 
+    # @param [String] params_s
+    # @return [Array<AST::PNode>]
     def parse_method_params(params_s)
       Util.assert! { params_s.is_a?(String) }
 
@@ -369,7 +404,7 @@ module Yard2steep
         return []
       end
 
-      params_s.split(',').map(&:strip).map do |p|
+      params_s.split(',').map { |s| s.strip }.map do |p|
         if p.include?(':')
           name, default_value = p.split(':')
           if default_value
@@ -392,9 +427,11 @@ module Yard2steep
       end
     end
 
+    # @param [String] l
+    # @return [bool]
     def try_parse_attr(l)
       m = l.match(ATTR_RE)
-      return false if m.nil?
+      return false unless m
 
       ivars = m[1].split(",").map { |s| s.strip.gsub(/^:/, '') }
       ivars.each do |ivarname|
@@ -417,6 +454,8 @@ module Yard2steep
       true
     end
 
+    # @param [String] state
+    # @return [void]
     def push_state!(state)
       if STATES.values.include?(state)
         @state = state
@@ -424,6 +463,7 @@ module Yard2steep
       @stack.push(state)
     end
 
+    # @return [void]
     def pop_state!
       state = @stack.pop
       if STATES.values.include?(state)
@@ -438,12 +478,16 @@ module Yard2steep
       end
     end
 
+    # @return [bool]
     def stack_is_empty?
       @stack.size <= 1
     end
 
     ##
     # Helper
+
+    # @param [String] p
+    # @return [AST::PTypeNode]
     def type_node(p)
       if @p_types[p]
         @p_types[p]
@@ -465,6 +509,9 @@ module Yard2steep
       end
     end
 
+    # @param [String] message
+    # @param [Integer] offset
+    # @return [void]
     def debug_print!(message, offset: 0)
       print "#{' ' * (@stack.size * 2 + offset)}#{message}\n" if @debug
     end
@@ -501,6 +548,9 @@ module Yard2steep
     $/x
 
     # NOTE: normalize type to steep representation
+    #
+    # @param [String] type
+    # @return [String]
     def normalize_type(type)
       if type[0..4] == 'Array'.freeze
         if type == 'Array'.freeze
@@ -525,8 +575,10 @@ module Yard2steep
       end
     end
 
+    # @param [String] type_s
+    # @return [String]
     def normalize_multi_type(type_s)
-      type_s.split(',').map(&:strip).uniq.join(' | ')
+      type_s.split(',').map { |s| s.strip }.uniq.join(' | ')
     end
   end
 end

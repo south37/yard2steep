@@ -2,6 +2,7 @@ module Yard2steep
   module AST
     # AST::ClassNode represents `Class` or `Module` AST.
     class ClassNode
+      # @return [AST::ClassNode]
       def self.create_main
         AST::ClassNode.new(
           kind:   'module',
@@ -15,12 +16,15 @@ module Yard2steep
 
       KIND = ['class', 'module']
 
+      # @param [String] kind
+      # @param [String] c_name
+      # @param [AST::ClassNode | nil] parent
       def initialize(kind:, c_name:, parent:)
         Util.assert! { KIND.include?(kind) }
         Util.assert! { c_name.is_a?(String) }
         Util.assert! {
           parent.is_a?(AST::ClassNode) ||
-          (parent.nil? && c_name == 'main')
+          (parent == nil && c_name == 'main')
         }
         @kind      = kind
         @c_name    = c_name
@@ -31,22 +35,31 @@ module Yard2steep
         @parent    = parent
       end
 
+      # @param [AST::ConstantNode] c
+      # @return [void]
       def append_constant(c)
         @c_list.push(c)
       end
 
+      # @param [AST::MethodNode] m
+      # @return [void]
       def append_m(m)
         @m_list.push(m)
       end
 
+      # @param [AST::IVarNode] ivar
+      # @return [void]
       def append_ivar(ivar)
         @ivar_list.push(ivar)
       end
 
+      # @param [AST::ClassNode] child
+      # @return [void]
       def append_child(child)
         @children.push(child)
       end
 
+      # @return [String]
       def long_name
         @long_name ||= begin
            # NOTE: main has no long_name
@@ -60,10 +73,12 @@ module Yard2steep
         end
       end
 
+      # @return [String]
       def to_s
         inspect
       end
 
+      # @return [String]
       def inspect
         <<-EOF
 {

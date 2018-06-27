@@ -1,29 +1,29 @@
 class Yard2steep::Parser
   def initialize: -> any
-  def parse: (any, any, ?debug: any) -> any
-  def reset_method_context!: -> any
-  def parse_line: (any) -> any
-  def try_parse_comment: (any) -> any
-  def try_parse_param_or_return: (any) -> any
-  def try_parse_end: (any) -> any
-  def try_parse_postfix_if: (any) -> any
-  def try_parse_begin_end: (any) -> any
-  def try_parse_class: (any) -> any
-  def try_parse_constant: (any) -> any
-  def try_parse_singleton_class: (any) -> any
-  def try_parse_param: (any) -> any
-  def try_parse_return: (any) -> any
-  def try_parse_method: (any) -> any
-  def try_parse_method_with_no_action: (any) -> any
-  def parse_method_params: (any) -> any
-  def try_parse_attr: (any) -> any
-  def push_state!: (any) -> any
-  def pop_state!: -> any
-  def stack_is_empty?: -> any
-  def type_node: (any) -> any
-  def debug_print!: (any, ?offset: any) -> any
-  def normalize_type: (any) -> any
-  def normalize_multi_type: (any) -> any
+  def parse: (String, String, ?debug: bool) -> AST::ClassNode
+  def reset_method_context!: -> void
+  def parse_line: (String) -> void
+  def try_parse_comment: (String) -> bool
+  def try_parse_param_or_return: (String) -> bool
+  def try_parse_end: (String) -> bool
+  def try_parse_postfix_if: (String) -> bool
+  def try_parse_begin_end: (String) -> bool
+  def try_parse_class: (String) -> bool
+  def try_parse_constant: (String) -> bool
+  def try_parse_singleton_class: (String) -> bool
+  def try_parse_param: (String) -> bool
+  def try_parse_return: (String) -> bool
+  def try_parse_method: (String) -> bool
+  def try_parse_method_with_no_action: (String) -> bool
+  def parse_method_params: (String) -> Array<AST::PNode>
+  def try_parse_attr: (String) -> bool
+  def push_state!: (String) -> void
+  def pop_state!: -> void
+  def stack_is_empty?: -> bool
+  def type_node: (String) -> AST::PTypeNode
+  def debug_print!: (String, ?offset: Integer) -> void
+  def normalize_type: (String) -> String
+  def normalize_multi_type: (String) -> String
 end
 Yard2steep::Parser::S_RE: any
 Yard2steep::Parser::S_P_RE: any

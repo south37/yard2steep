@@ -5,6 +5,7 @@ module Yard2steep
       # @dynamic name
       attr_reader :name
 
+      # @param [String] name
       def initialize(name:)
         Util.assert! { name.is_a?(String) }
         @name = name

@@ -3,6 +3,6 @@ class Yard2steep::AST::PNode
   @style: any
   def type_node: -> any
   def style: -> any
-  def initialize: (type_node: any, style: any) -> any
+  def initialize: (type_node: AST::PTypeNode, style: String) -> any
 end
 Yard2steep::AST::PNode::STYLE: any

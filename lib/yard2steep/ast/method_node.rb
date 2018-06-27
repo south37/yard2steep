@@ -5,6 +5,9 @@ module Yard2steep
       # @dynamic p_list, r_type, m_name
       attr_reader :p_list, :r_type, :m_name
 
+      # @param [String] m_name
+      # @param [Array<PNode>] p_list
+      # @param [String] r_type
       def initialize(m_name:, p_list:, r_type:)
         Util.assert! { m_name.is_a?(String) }
         Util.assert! { p_list.is_a?(Array) }

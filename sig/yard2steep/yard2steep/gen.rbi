@@ -1,15 +1,15 @@
 class Yard2steep::Gen
   def initialize: -> any
-  def gen: (any) -> any
-  def emit!: (any, ?off: any) -> any
-  def gen_child!: (any, off: any) -> any
-  def gen_m_list!: (any, off: any) -> any
-  def gen_ivar_list!: (any, off: any) -> any
-  def gen_c_list!: (any, off: any) -> any
-  def gen_children!: (any, off: any) -> any
-  def gen_c!: (any, off: any) -> any
-  def gen_m!: (any, off: any) -> any
-  def gen_p_list!: (any) -> any
-  def gen_block_p!: (any) -> any
-  def gen_m_p!: (any) -> any
+  def gen: (AST::ClassNode) -> String
+  def emit!: (String, ?off: Integer) -> void
+  def gen_child!: (AST::ClassNode, off: Integer) -> void
+  def gen_m_list!: (AST::ClassNode, off: Integer) -> void
+  def gen_ivar_list!: (AST::ClassNode, off: Integer) -> void
+  def gen_c_list!: (AST::ClassNode, off: Integer) -> void
+  def gen_children!: (AST::ClassNode, off: Integer) -> void
+  def gen_c!: (AST::ConstantNode, off: Integer) -> void
+  def gen_m!: (AST::MethodNode, off: Integer) -> void
+  def gen_p_list!: (Array<AST::PNode>) -> void
+  def gen_block_p!: (AST::PNode) -> void
+  def gen_m_p!: (AST::PNode) -> void
 end

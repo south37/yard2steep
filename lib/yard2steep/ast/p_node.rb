@@ -10,6 +10,8 @@ module Yard2steep
         keyword_with_default: "STYLE.keyword_with_default",
       }
 
+      # @param [AST::PTypeNode] type_node
+      # @param [String] style
       def initialize(type_node:, style:)
         Util.assert! { type_node.is_a?(AST::PTypeNode) }
         Util.assert! { STYLE.values.include?(style) }

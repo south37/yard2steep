@@ -5,5 +5,5 @@ class Yard2steep::AST::MethodNode
   def p_list: -> any
   def r_type: -> any
   def m_name: -> any
-  def initialize: (m_name: any, p_list: any, r_type: any) -> any
+  def initialize: (m_name: String, p_list: Array<PNode>, r_type: String) -> any
 end

@@ -6,6 +6,8 @@ module Yard2steep
       @out = StringIO.new # Output buffer
     end
 
+    # @param [AST::ClassNode] ast
+    # @return [String]
     def gen(ast)
       gen_child!(ast, off: 0)
 
@@ -13,6 +15,9 @@ module Yard2steep
       @out.read
     end
 
+    # @param [String] s
+    # @param [Integer] off
+    # @return [void]
     def emit!(s, off: 0)
       Util.assert! { off >= 0 }
       if off == 0
@@ -22,6 +27,9 @@ module Yard2steep
       end
     end
 
+    # @param [AST::ClassNode] c_node
+    # @param [Integer] off
+    # @return [void]
     def gen_child!(c_node, off:)
       Util.assert! { c_node.is_a?(AST::ClassNode) }
 
@@ -42,6 +50,9 @@ module Yard2steep
       end
     end
 
+    # @param [AST::ClassNode] c_node
+    # @param [Integer] off
+    # @return [void]
     def gen_m_list!(c_node, off:)
       c_node.m_list.each do |m_node|
         gen_m!(m_node, off: off)
@@ -49,30 +60,46 @@ module Yard2steep
     end
 
     # NOTE: In current impl, ivar's type is declared as any
+    #
+    # @param [AST::ClassNode] c_node
+    # @param [Integer] off
+    # @return [void]
     def gen_ivar_list!(c_node, off:)
       c_node.ivar_list.each do |ivar_node|
         emit! "@#{ivar_node.name}: any\n", off: off
       end
     end
 
+    # @param [AST::ClassNode] c_node
+    # @param [Integer] off
+    # @return [void]
     def gen_c_list!(c_node, off:)
       c_node.c_list.each do |c_node|
         gen_c!(c_node, off: off)
       end
     end
 
+    # @param [AST::ClassNode] c_node
+    # @param [Integer] off
+    # @return [void]
     def gen_children!(c_node, off:)
       c_node.children.each do |child|
         gen_child!(child, off: off)
       end
     end
 
+    # @param [AST::ConstantNode] c_node
+    # @param [Integer] off
+    # @return [void]
     def gen_c!(c_node, off:)
       Util.assert! { c_node.is_a?(AST::ConstantNode) }
       # NOTE: Use any as constant type.
       emit! "#{c_node.long_name}: any\n", off: off
     end
 
+    # @param [AST::MethodNode] m_node
+    # @param [Integer] off
+    # @return [void]
     def gen_m!(m_node, off:)
       Util.assert! { m_node.is_a?(AST::MethodNode) }
       emit! "def #{m_node.m_name}: ", off: off
@@ -89,6 +116,8 @@ module Yard2steep
       emit! "-> #{m_node.r_type}\n"
     end
 
+    # @param [Array<AST::PNode>] p_list
+    # @return [void]
     def gen_p_list!(p_list)
       len = p_list.size
       if len > 0
@@ -106,10 +135,15 @@ module Yard2steep
     end
 
     # TODO(south37) Represents block param and return type separately
+    #
+    # @param [AST::PNode] p
+    # @return [void]
     def gen_block_p!(p)
       emit! "#{p.type_node.p_type} "
     end
 
+    # @param [AST::PNode] p_node
+    # @return [void]
     def gen_m_p!(p_node)
       t = p_node.type_node
 

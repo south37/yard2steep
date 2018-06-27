@@ -3,6 +3,6 @@ class Yard2steep::AST::ConstantNode
   @klass: any
   def name: -> any
   def klass: -> any
-  def initialize: (name: any, klass: any) -> any
-  def long_name: -> any
+  def initialize: (name: String, klass: String) -> any
+  def long_name: -> String
 end

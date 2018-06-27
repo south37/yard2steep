@@ -2,29 +2,37 @@ require 'yard2steep/cli/option'
 
 module Yard2steep
   class CLI
+    # @param [Array<String>] argv
+    # @return [void]
     def self.run!(argv)
       CLI.new(argv).run!
     end
 
+    # @param [Array<String>] argv
     def initialize(argv)
       @option = Option.new
       @option.parse!(argv)
     end
 
+    # @return [void]
     def run!
       traverse_dir!(src_dir)
     end
 
   private
 
+    # @return [String]
     def src_dir
       @src_dir ||= File.expand_path(@option.src)
     end
 
+    # @return [String]
     def dst_dir
       @dst_dir ||= File.expand_path(@option.dst)
     end
 
+    # @param [String] dir
+    # @return [void]
     def traverse_dir!(dir)
       Dir.glob(File.join(dir, '*')).each do |f|
         if File.file?(f)
@@ -39,6 +47,8 @@ module Yard2steep
       end
     end
 
+    # @param [String] f
+    # @return [void]
     def translate!(f)
       text = File.read(f)
 

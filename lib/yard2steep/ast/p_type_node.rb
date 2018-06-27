@@ -10,6 +10,9 @@ module Yard2steep
         block:  "KIND.block",
       }
 
+      # @param [String] p_type
+      # @param [String] p_name
+      # @param [String] kind
       def initialize(p_type:, p_name:, kind:)
         Util.assert! { p_type.is_a?(String) }
         Util.assert! { p_name.is_a?(String) }
