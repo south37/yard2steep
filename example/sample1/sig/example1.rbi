@@ -1,4 +1,6 @@
 class MyClass
+  @index: any
+  def index: -> any
   def self.name: -> String
   def name: -> String
   def pair: -> Array<Symbol>

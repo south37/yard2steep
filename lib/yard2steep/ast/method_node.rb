@@ -2,7 +2,8 @@ module Yard2steep
   module AST
     # MethodNode represents `method` AST.
     class MethodNode
-      attr_accessor :p_list, :r_type, :m_name
+      # @dynamic p_list, r_type, m_name
+      attr_reader :p_list, :r_type, :m_name
 
       def initialize(m_name:, p_list:, r_type:)
         Util.assert! { m_name.is_a?(String) }

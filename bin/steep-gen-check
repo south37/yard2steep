@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# Generate interface
+bin/steep-gen
+
+# Check interface
+bin/steep-check

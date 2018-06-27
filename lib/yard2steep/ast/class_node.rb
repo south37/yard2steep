@@ -10,7 +10,8 @@ module Yard2steep
         )
       end
 
-      attr_accessor :kind, :c_name, :c_list, :m_list, :children, :parent
+      # @dynamic kind, c_name, c_list, m_list, ivar_list, children, parent
+      attr_reader :kind, :c_name, :c_list, :m_list, :ivar_list, :children, :parent
 
       KIND = ['class', 'module']
 
@@ -21,12 +22,13 @@ module Yard2steep
           parent.is_a?(AST::ClassNode) ||
           (parent.nil? && c_name == 'main')
         }
-        @kind     = kind
-        @c_name   = c_name
-        @c_list   = []  # list of constants
-        @m_list   = []  # list of methods
-        @children = []  # list of child classes
-        @parent   = parent
+        @kind      = kind
+        @c_name    = c_name
+        @c_list    = []  # list of constants
+        @m_list    = []  # list of methods
+        @ivar_list = []  # list of instance variables
+        @children  = []  # list of child classes
+        @parent    = parent
       end
 
       def append_constant(c)
@@ -35,6 +37,10 @@ module Yard2steep
 
       def append_m(m)
         @m_list.push(m)
+      end
+
+      def append_ivar(ivar)
+        @ivar_list.push(ivar)
       end
 
       def append_child(child)
@@ -64,6 +70,7 @@ module Yard2steep
   #{@kind}: #{c_name},
   c_list: [#{@c_list.map(&:to_s).map { |s| "#{s}\n" }.join}],
   m_list: [#{@m_list.map(&:to_s).map { |s| "#{s}\n" }.join}],
+  ivar_list: [#{@ivar_list.map(&:to_s).map { |s| "#{s}\n" }.join}],
   children: [#{@children.map(&:to_s).map { |s| "#{s}\n" }.join}],
 }
         EOF

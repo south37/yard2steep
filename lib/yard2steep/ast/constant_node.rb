@@ -1,7 +1,8 @@
 module Yard2steep
   module AST
     class ConstantNode
-      attr_accessor :name, :klass
+      # @dynamic name, klass
+      attr_reader :name, :klass
 
       def initialize(name:, klass:)
         Util.assert! { name.is_a?(String) }

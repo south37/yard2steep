@@ -3,6 +3,7 @@ require 'optparse'
 module Yard2steep
   class CLI
     class Option
+      # @dynamic src, dst, debug, debug_ast
       attr_reader :src, :dst, :debug, :debug_ast
 
       def initialize

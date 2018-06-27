@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Generate interface
-bin/steep-gen
-
 # Check with generated file
 echo "steep check with steep-scaffold"
 bundle exec steep check lib -I sig/steep-scaffold

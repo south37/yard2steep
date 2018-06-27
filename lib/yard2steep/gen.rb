@@ -31,8 +31,9 @@ module Yard2steep
         # generate type definition of methods.
         gen_children!(c_node, off: 0)
       else
-        if c_node.m_list.size > 0
+        if (c_node.m_list.size > 0) || (c_node.ivar_list.size > 0)
           emit! "#{c_node.kind} #{c_node.long_name}\n", off: off
+          gen_ivar_list!(c_node, off: off + 2)
           gen_m_list!(c_node, off: off + 2)
           emit! "end\n", off: off
         end
@@ -44,6 +45,13 @@ module Yard2steep
     def gen_m_list!(c_node, off:)
       c_node.m_list.each do |m_node|
         gen_m!(m_node, off: off)
+      end
+    end
+
+    # NOTE: In current impl, ivar's type is declared as any
+    def gen_ivar_list!(c_node, off:)
+      c_node.ivar_list.each do |ivar_node|
+        emit! "@#{ivar_node.name}: any\n", off: off
       end
     end
 

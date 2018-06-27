@@ -28,6 +28,7 @@ class Yard2steep::Parser
   def try_parse_method: (any) -> bool
   def try_parse_method_with_no_action: (any) -> bool
   def parse_method_params: (any) -> any
+  def try_parse_attr: (any) -> bool
   def push_state!: (any) -> any
   def pop_state!: () -> void
   def stack_is_empty?: () -> any
@@ -55,6 +56,7 @@ Yard2steep::Parser::RETURN_RE: Regexp
 Yard2steep::Parser::PAREN_RE: Regexp
 Yard2steep::Parser::ARGS_RE: Regexp
 Yard2steep::Parser::METHOD_RE: Regexp
+Yard2steep::Parser::ATTR_RE: Regexp
 Yard2steep::Parser::STATES: Hash<any, any>
 Yard2steep::Parser::ANY_TYPE: String
 Yard2steep::Parser::ANY_BLOCK_TYPE: String
@@ -106,12 +108,14 @@ class Yard2steep::AST::ClassNode
   @c_name: any
   @c_list: any
   @m_list: any
+  @ivar_list: any
   @children: any
   @parent: any
   @long_name: any
   def initialize: (kind: any, c_name: any, parent: any) -> any
   def append_constant: (any) -> any
   def append_m: (any) -> any
+  def append_ivar: (any) -> any
   def append_child: (any) -> any
   def long_name: () -> any
   def to_s: () -> any
@@ -125,6 +129,11 @@ class Yard2steep::AST::ConstantNode
   @klass: any
   def initialize: (name: any, klass: any) -> any
   def long_name: () -> String
+end
+
+class Yard2steep::AST::IVarNode
+  @name: any
+  def initialize: (name: any) -> any
 end
 
 class Yard2steep::AST::PTypeNode
@@ -153,6 +162,7 @@ class Yard2steep::Gen
   def emit!: (any, ?off: Integer) -> any
   def gen_child!: (any, off: any) -> any
   def gen_m_list!: (any, off: any) -> any
+  def gen_ivar_list!: (any, off: any) -> any
   def gen_c_list!: (any, off: any) -> any
   def gen_children!: (any, off: any) -> any
   def gen_c!: (any, off: any) -> any

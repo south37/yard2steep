@@ -1,7 +1,8 @@
 module Yard2steep
   module AST
     class PNode
-      attr_accessor :type_node, :style
+      # @dynamic type_node, style
+      attr_reader :type_node, :style
 
       STYLE = {
         normal:               "STYLE.normal",

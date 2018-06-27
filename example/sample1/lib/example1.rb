@@ -24,6 +24,8 @@ class MyClass
 
   CONSTANT = "This is constant".freeze
 
+  attr_reader :index
+
   # This for should not be used.
   # @return [String]
   def self.name

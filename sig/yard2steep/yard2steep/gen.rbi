@@ -4,6 +4,7 @@ class Yard2steep::Gen
   def emit!: (any, ?off: any) -> any
   def gen_child!: (any, off: any) -> any
   def gen_m_list!: (any, off: any) -> any
+  def gen_ivar_list!: (any, off: any) -> any
   def gen_c_list!: (any, off: any) -> any
   def gen_children!: (any, off: any) -> any
   def gen_c!: (any, off: any) -> any

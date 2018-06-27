@@ -16,6 +16,7 @@ class Yard2steep::Parser
   def try_parse_method: (any) -> any
   def try_parse_method_with_no_action: (any) -> any
   def parse_method_params: (any) -> any
+  def try_parse_attr: (any) -> any
   def push_state!: (any) -> any
   def pop_state!: -> any
   def stack_is_empty?: -> any
@@ -42,6 +43,7 @@ Yard2steep::Parser::RETURN_RE: any
 Yard2steep::Parser::PAREN_RE: any
 Yard2steep::Parser::ARGS_RE: any
 Yard2steep::Parser::METHOD_RE: any
+Yard2steep::Parser::ATTR_RE: any
 Yard2steep::Parser::STATES: any
 Yard2steep::Parser::ANY_TYPE: any
 Yard2steep::Parser::ANY_BLOCK_TYPE: any

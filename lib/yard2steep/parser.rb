@@ -113,6 +113,15 @@ module Yard2steep
       #{POST_RE}
     /x
 
+    # TODO(south37) Support attr_writer, attr_accessor
+    ATTR_RE = /
+      #{PRE_RE}
+      attr_reader
+      #{S_P_RE}
+      (:\w+.*)
+      #{POST_RE}
+    /x
+
     STATES = {
       class:   "STATES.class",
       s_class: "STATES.s_class",  # singleton class
@@ -182,6 +191,7 @@ module Yard2steep
         return if try_parse_class(l)
         return if try_parse_singleton_class(l)
         return if try_parse_method(l)
+        return if try_parse_attr(l)
       when STATES[:s_class]
         return if try_parse_method_with_no_action(l)
       when STATES[:method]
@@ -381,6 +391,31 @@ module Yard2steep
           )
         end
       end
+    end
+
+    def try_parse_attr(l)
+      m = l.match(ATTR_RE)
+      return false if m.nil?
+
+      ivars = m[1].split(",").map { |s| s.strip.gsub(/^:/, '') }
+      ivars.each do |ivarname|
+        @current_class.append_ivar(
+          AST::IVarNode.new(
+            name: ivarname
+          )
+        )
+
+        # NOTE: Attr reader should add getter method
+        @current_class.append_m(
+          AST::MethodNode.new(
+            p_list: [],
+            r_type: ANY_TYPE,
+            m_name: ivarname,
+          )
+        )
+      end
+
+      true
     end
 
     def push_state!(state)
