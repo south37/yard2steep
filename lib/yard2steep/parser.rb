@@ -165,8 +165,7 @@ module Yard2steep
       @ast
     end
 
-  # NOTE: steep cause error when `private` is used. So we does not use it.
-  # private
+  private
 
     def reset_method_context!
       # Current method context. Flushed when method definition is parsed.
