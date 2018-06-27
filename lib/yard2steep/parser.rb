@@ -120,6 +120,7 @@ module Yard2steep
     }
 
     ANY_TYPE = 'any'
+    ANY_BLOCK_TYPE = '{ (any) -> any }'
 
     def initialize
       # Debug flag
@@ -291,6 +292,7 @@ module Yard2steep
       p = AST::PTypeNode.new(
         p_type: normalize_type(m[1]),
         p_name: m[2],
+        kind:   AST::PTypeNode::KIND[:normal],
       )
       @p_types[p.p_name] = p
 
@@ -409,7 +411,24 @@ module Yard2steep
     ##
     # Helper
     def type_node(p)
-      @p_types[p] || AST::PTypeNode.new(p_type: ANY_TYPE, p_name: p)
+      if @p_types[p]
+        @p_types[p]
+      else
+        # NOTE: `&` represents block variable
+        if p[0] == '&'
+          AST::PTypeNode.new(
+            p_type: ANY_BLOCK_TYPE,
+            p_name: p[1..-1],
+            kind:   AST::PTypeNode::KIND[:block],
+          )
+        else
+          AST::PTypeNode.new(
+            p_type: ANY_TYPE,
+            p_name: p,
+            kind:   AST::PTypeNode::KIND[:normal],
+          )
+        end
+      end
     end
 
     def debug_print!(message, offset: 0)

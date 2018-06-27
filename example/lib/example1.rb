@@ -87,6 +87,10 @@ class MyClass
     list.size > 0
   end
 
+  def mysum(list, &block)
+    list.map { |e| block.call(e) }.inject(&:+)
+  end
+
   module InnerClass
     # @param [Integer] source
     # @return [Integer]

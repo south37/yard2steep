@@ -8,6 +8,7 @@ class MyClass
   def reverse: (Array<Integer>, order: Symbol) -> Array<Integer>
   def first!: (any) -> any
   def present?: (any) -> any
+  def mysum: (any) { (any) -> any } -> any
 end
 MyClass::CONSTANT: any
 module MyClass::InnerClass

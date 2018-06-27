@@ -2,8 +2,9 @@ module Yard2steep
   module Util
     class AssertError < RuntimeError; end
 
-    def self.assert!
-      raise AssertError.new("Assertion failed!") if !yield
+    # @param [{ () -> any }]
+    def self.assert!(&block)
+      raise AssertError.new("Assertion failed!") if !block.call
     end
   end
 end

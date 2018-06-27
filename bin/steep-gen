@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+print "Generate interface with steep-scaffold\n"
+TARGET = 'sig/steep-scaffold/td.rbi'
+# Update sig/steep-scaffold/td.rbi
+%x{ bundle exec steep scaffold lib > #{TARGET} }
+# Postfix
+text = File.read(TARGET)
+# Fix block type
+text = text.gsub('def self.assert!: () -> void', 'def self.assert!: { () -> any } -> void')
+# Fix duplicated `module Yard2steep
+text = text.split("\n")[0..-3].join("\n") + "\n"
+File.write(TARGET, text)
+
+print "Generate interface with yard2steep\n"
+%x{ bundle exec yard2steep lib sig/yard2steep }

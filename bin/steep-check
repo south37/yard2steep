@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Generate interface
+bin/steep-gen
+
+# Check with generated file
+echo "steep check with steep-scaffold"
+bundle exec steep check lib -I sig/steep-scaffold
+
+echo "steep check with yard2steep"
+bundle exec steep check lib -I sig/yard2steep

@@ -68,11 +68,25 @@ module Yard2steep
     def gen_m!(m_node, off:)
       Util.assert! { m_node.is_a?(AST::MethodNode) }
       emit! "def #{m_node.m_name}: ", off: off
-      len = m_node.p_list.size
+      p_list = m_node.p_list
+
+      # NOTE: Check presence of block variable at last.
+      if p_list[-1] && (p_list[-1].type_node.kind == AST::PTypeNode::KIND[:block])
+        gen_p_list!(p_list[0..-2])
+        gen_block_p!(p_list[-1])
+      else
+        gen_p_list!(p_list)
+      end
+
+      emit! "-> #{m_node.r_type}\n"
+    end
+
+    def gen_p_list!(p_list)
+      len = p_list.size
       if len > 0
         emit! "("
 
-        m_node.p_list.each.with_index do |p, i|
+        p_list.each.with_index do |p, i|
           gen_m_p!(p)
           if i < (len - 1)
             emit!(", ")
@@ -81,7 +95,11 @@ module Yard2steep
 
         emit! ") "
       end
-      emit! "-> #{m_node.r_type}\n"
+    end
+
+    # TODO(south37) Represents block param and return type separately
+    def gen_block_p!(p)
+      emit! "#{p.type_node.p_type} "
     end
 
     def gen_m_p!(p_node)
