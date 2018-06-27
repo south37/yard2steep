@@ -1,6 +1,6 @@
 # Yard2steep
 
-Generate steep type definition file from yard annotation.
+Generate [steep](https://github.com/soutaro/steep) type definition file from yard annotation.
 
 :warning: **This is highly experimental project. Current version is 0.1.0.**
 
@@ -61,7 +61,7 @@ class Parser
 end
 ```
 
-After generating `.rbi` file, we can run `steep check` command to type check.
+After generating `.rbi` file, we can run `steep check` command to type check. (cf. [Usage of steep](https://github.com/soutaro/steep#usage) )
 
 ```
 $ steep check lib -I sig
