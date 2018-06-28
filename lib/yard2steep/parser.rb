@@ -1,4 +1,5 @@
 require 'yard2steep/ast'
+require 'yard2steep/type'
 
 module Yard2steep
   class Parser
@@ -12,7 +13,7 @@ module Yard2steep
       (class)
       #{S_P_RE}
       (\w+)
-      (?:
+      (
         #{S_P_RE}
         <
         #{S_P_RE}
@@ -60,7 +61,14 @@ module Yard2steep
     $/x
 
     COMMENT_RE         = /#{PRE_RE}#/
-    TYPE_WITH_PAREN_RE = /\[([^\]]*)\]/
+    TYPE_WITH_PAREN_RE = /
+      \[
+      (
+        [^\]]
+        *
+      )
+      \]
+    /x
 
     PARAM_RE  = /
       #{COMMENT_RE}
@@ -280,9 +288,10 @@ module Yard2steep
       reset_method_context!
 
       c = AST::ClassNode.new(
-        kind:   m[1],
-        c_name: m[2],
-        parent: @current_class,
+        kind:    m[1],
+        c_name:  m[2],
+        super_c: m[3] && m[3].gsub('<', '').strip,
+        parent:  @current_class,
       )
       @current_class.append_child(c)
       @current_class = c
@@ -516,69 +525,11 @@ module Yard2steep
       print "#{' ' * (@stack.size * 2 + offset)}#{message}\n" if @debug
     end
 
-    ARRAY_TYPE_RE = /^
-      Array
-      #{S_RE}
-      <
-        ([^>]+)
-      >
-      #{S_RE}
-    $/x
-    FIXED_ARRAY_TYPE_RE = /^
-      Array
-      #{S_RE}
-      \(
-        ([^)]+)
-      \)
-      #{S_RE}
-    $/x
-    HASH_TYPE_RE = /^
-      Hash
-      #{S_RE}
-      \{
-        #{S_RE}
-        ([^=]+)
-        #{S_RE}
-        =>
-        #{S_RE}
-        ([^}]+)
-        #{S_RE}
-      \}
-      #{S_RE}
-    $/x
-
-    # NOTE: normalize type to steep representation
-    #
     # @param [String] type
     # @return [String]
     def normalize_type(type)
-      if type[0..4] == 'Array'.freeze
-        if type == 'Array'.freeze
-          'Array<any>'.freeze
-        elsif (m = ARRAY_TYPE_RE.match(type))
-          "Array<#{normalize_multi_type(m[1])}>"
-        elsif (m = FIXED_ARRAY_TYPE_RE.match(type))
-          "Array<#{normalize_multi_type(m[1])}>"
-        else
-          raise "invalid Array type: #{type}"
-        end
-      elsif type[0..3] == 'Hash'.freeze
-        if type == 'Hash'.freeze
-          'Hash<any, any>'.freeze
-        elsif (m = HASH_TYPE_RE.match(type))
-          "Hash<#{normalize_multi_type(m[1])}, #{normalize_multi_type(m[2])}>"
-        else
-          raise "invalid Hash type: #{type}"
-        end
-      else
-        normalize_multi_type(type)
-      end
-    end
-
-    # @param [String] type_s
-    # @return [String]
-    def normalize_multi_type(type_s)
-      type_s.split(',').map { |s| s.strip }.uniq.join(' | ')
+      debug_print! type
+      Type.translate(type)
     end
   end
 end
