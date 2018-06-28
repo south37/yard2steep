@@ -12,6 +12,11 @@ end
 # NOTE: this is wrong comment. so should ignore it
 # @param [Array] contents
 
+class SomeClass
+  # @dynamic index
+  attr_reader :index
+end
+
 class MyClass
   # NOTE: method definition in singleton class should be ignored
   class << self
@@ -23,8 +28,6 @@ class MyClass
   end
 
   CONSTANT = "This is constant".freeze
-
-  attr_reader :index
 
   # This for should not be used.
   # @return [String]
@@ -42,6 +45,11 @@ class MyClass
     [:ok, :no]
   end
 
+  # @return [Array<Array<Symbol>>]
+  def nest
+    [[:o]]
+  end
+
   # @return [Array(Symbol, Integer)]
   def type
     [:number, 1]
@@ -56,6 +64,11 @@ class MyClass
   # @return [Hash{ Symbol => Integer, nil }]
   def values(off: 0)
     { ok: 3, no: nil }
+  end
+
+  # @return [Hash{ Symbol => Array<Integer> }]
+  def nest_hash
+    { ok: [1, 2] }
   end
 
   # @param [Array<Integer>] contents

@@ -23,7 +23,6 @@ class Yard2steep::Parser
   def type_node: (String) -> AST::PTypeNode
   def debug_print!: (String, ?offset: Integer) -> void
   def normalize_type: (String) -> String
-  def normalize_multi_type: (String) -> String
 end
 Yard2steep::Parser::S_RE: any
 Yard2steep::Parser::S_P_RE: any
@@ -47,6 +46,3 @@ Yard2steep::Parser::ATTR_RE: any
 Yard2steep::Parser::STATES: any
 Yard2steep::Parser::ANY_TYPE: any
 Yard2steep::Parser::ANY_BLOCK_TYPE: any
-Yard2steep::Parser::ARRAY_TYPE_RE: any
-Yard2steep::Parser::FIXED_ARRAY_TYPE_RE: any
-Yard2steep::Parser::HASH_TYPE_RE: any

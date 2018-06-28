@@ -7,19 +7,21 @@ module Yard2steep
         AST::ClassNode.new(
           kind:   'module',
           c_name: 'main',
-          parent: nil,
+          super_c: nil,
+          parent:  nil,
         )
       end
 
-      # @dynamic kind, c_name, c_list, m_list, ivar_list, children, parent
-      attr_reader :kind, :c_name, :c_list, :m_list, :ivar_list, :children, :parent
+      # @dynamic kind, c_name, super_c, c_list, m_list, ivar_list, children, parent
+      attr_reader :kind, :c_name, :super_c, :c_list, :m_list, :ivar_list, :children, :parent
 
       KIND = ['class', 'module']
 
       # @param [String] kind
       # @param [String] c_name
-      # @param [AST::ClassNode | nil] parent
-      def initialize(kind:, c_name:, parent:)
+      # @param [AST::ClassNode, nil] parent
+      # @param [String, nil] super_c
+      def initialize(kind:, c_name:, super_c:, parent:)
         Util.assert! { KIND.include?(kind) }
         Util.assert! { c_name.is_a?(String) }
         Util.assert! {
@@ -28,6 +30,7 @@ module Yard2steep
         }
         @kind      = kind
         @c_name    = c_name
+        @super_c   = super_c
         @c_list    = []  # list of constants
         @m_list    = []  # list of methods
         @ivar_list = []  # list of instance variables
@@ -69,6 +72,16 @@ module Yard2steep
              @c_name
            else
              "#{@parent.long_name}::#{@c_name}"
+           end
+        end
+      end
+
+      def long_super
+        @long_super ||= begin
+           if @parent.c_name == 'main'
+             @super_c
+           else
+             "#{@parent.long_name}::#{@super_c}"
            end
         end
       end

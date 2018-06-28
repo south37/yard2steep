@@ -35,7 +35,6 @@ class Yard2steep::Parser
   def type_node: (any) -> any
   def debug_print!: (any, ?offset: Integer) -> void
   def normalize_type: (any) -> any
-  def normalize_multi_type: (any) -> any
 end
 
 Yard2steep::Parser::S_RE: Regexp
@@ -60,9 +59,6 @@ Yard2steep::Parser::ATTR_RE: Regexp
 Yard2steep::Parser::STATES: Hash<any, any>
 Yard2steep::Parser::ANY_TYPE: String
 Yard2steep::Parser::ANY_BLOCK_TYPE: String
-Yard2steep::Parser::ARRAY_TYPE_RE: Regexp
-Yard2steep::Parser::FIXED_ARRAY_TYPE_RE: Regexp
-Yard2steep::Parser::HASH_TYPE_RE: Regexp
 class Yard2steep::CLI
   @option: any
   @src_dir: any
@@ -89,6 +85,60 @@ class Yard2steep::Engine
   def self.execute: (any, any, ?debug: bool, ?debug_ast: bool) -> any
 end
 
+class Yard2steep::Type::TypeBase
+  def self.union2s: (any) -> any
+end
+
+class Yard2steep::Type::AnyType
+  def to_s: () -> String
+end
+
+class Yard2steep::Type::NormalType
+  @type: any
+  def initialize: (type: any) -> any
+  def to_s: () -> any
+end
+
+class Yard2steep::Type::ArrayType
+  @type: any
+  def initialize: (type: any) -> any
+  def to_s: () -> String
+end
+
+class Yard2steep::Type::HashType
+  @key: any
+  @val: any
+  def initialize: (key: any, val: any) -> any
+  def to_s: () -> String
+end
+
+class Yard2steep::Type::Parser
+  @tokens: any
+  @types: any
+  def initialize: (any) -> Array<any>
+  def parse: () -> any
+  def parse_type: () -> any
+  def parse_normal_type: (any) -> any
+  def parse_multiple_types: (any) -> any
+  def parse_array: () -> any
+  def parse_hash: () -> any
+  def expect!: (any) -> any
+  def get: () -> any
+  def peek: () -> any
+  def debug_print!: (any) -> any
+  def self.parse: (any) -> any
+end
+
+class Yard2steep::Type
+  @text: any
+  def initialize: (any) -> any
+  def translate: () -> any
+  def tokens: (any) -> any
+  def self.translate: (any) -> any
+end
+
+Yard2steep::Type::S_RE: Regexp
+Yard2steep::Type::TOKENS: Regexp
 module Yard2steep::Util
   def self.assert!: { () -> any } -> void
 end
@@ -106,18 +156,21 @@ end
 class Yard2steep::AST::ClassNode
   @kind: any
   @c_name: any
+  @super_c: any
   @c_list: any
   @m_list: any
   @ivar_list: any
   @children: any
   @parent: any
   @long_name: any
-  def initialize: (kind: any, c_name: any, parent: any) -> any
+  @long_super: any
+  def initialize: (kind: any, c_name: any, super_c: any, parent: any) -> any
   def append_constant: (any) -> any
   def append_m: (any) -> any
   def append_ivar: (any) -> any
   def append_child: (any) -> any
   def long_name: () -> any
+  def long_super: () -> any
   def to_s: () -> any
   def inspect: () -> String
   def self.create_main: () -> any

@@ -40,7 +40,7 @@ module Yard2steep
         gen_children!(c_node, off: 0)
       else
         if (c_node.m_list.size > 0) || (c_node.ivar_list.size > 0)
-          emit! "#{c_node.kind} #{c_node.long_name}\n", off: off
+          emit! "#{c_node.kind} #{c_node.long_name}#{c_node.super_c ? " <: #{c_node.long_super}" : nil}\n", off: off
           gen_ivar_list!(c_node, off: off + 2)
           gen_m_list!(c_node, off: off + 2)
           emit! "end\n", off: off
