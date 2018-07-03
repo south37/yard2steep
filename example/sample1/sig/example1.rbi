@@ -1,6 +1,8 @@
 class SomeClass
   @index: any
+  @comment: any
   def index: -> any
+  def comment: -> any
 end
 class MyClass
   def self.name: -> String
@@ -9,6 +11,7 @@ class MyClass
   def nest: -> Array<Array<Symbol>>
   def type: -> Array<Symbol | Integer>
   def opts: -> Hash<any, any>
+  def comment: (String, ?Integer, ?opt: Hash<any, any>) -> String
   def values: (?off: Integer) -> Hash<Symbol, Integer | nil>
   def nest_hash: -> Hash<Symbol, Array<Integer>>
   def reverse: (Array<Integer>, order: Symbol) -> Array<Integer>

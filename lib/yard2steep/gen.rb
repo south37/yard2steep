@@ -150,6 +150,8 @@ module Yard2steep
       case p_node.style
       when AST::PNode::STYLE[:normal]
         emit! t.p_type
+      when AST::PNode::STYLE[:normal_with_default]
+        emit! "?#{t.p_type}"
       when AST::PNode::STYLE[:keyword]
         emit! "#{t.p_name}: #{t.p_type}"
       when AST::PNode::STYLE[:keyword_with_default]

@@ -1,7 +1,7 @@
 class Yard2steep::Type
-  def self.translate: (any) -> String
+  def self.translate: (String) -> String
   def initialize: (String) -> any
-  def translate: -> any
+  def translate: -> String
   def tokens: (String) -> Array<String>
 end
 Yard2steep::Type::S_RE: any
