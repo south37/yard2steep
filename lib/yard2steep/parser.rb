@@ -1,44 +1,11 @@
 require 'ripper'
 
-require 'yard2steep/type'
+require 'yard2steep/comments'
 require 'yard2steep/ast'
 require 'yard2steep/util'
 
 module Yard2steep
   class Parser
-    S_RE = /[\s\t]*/
-    TYPE_WITH_PAREN_RE = /
-      \[
-      (
-        [^\]]
-        *
-      )
-      \]
-    /x
-    COMMENT_RE = /^
-      \#
-      #{S_RE}
-      @(?:param|return)
-      #{S_RE}
-      #{TYPE_WITH_PAREN_RE}
-    /x
-    PARAM_RE  = /
-      \#
-      #{S_RE}
-      @param
-      #{S_RE}
-      #{TYPE_WITH_PAREN_RE}
-      #{S_RE}
-      (\w+)
-    /x
-    RETURN_RE = /
-      \#
-      #{S_RE}
-      @return
-      #{S_RE}
-      #{TYPE_WITH_PAREN_RE}
-    /x
-
     ANY_TYPE = 'any'
     ANY_BLOCK_TYPE = '{ (any) -> any }'
 
@@ -48,8 +15,6 @@ module Yard2steep
 
       # NOTE: set at parse
       @file = nil
-
-      @comments_map = {}
     end
 
     # @param [String] file
@@ -62,7 +27,7 @@ module Yard2steep
       @file = file
       debug_print!("Start parsing: #{file}")
 
-      @comments_map = extract_comments(text)
+      @comments = Comments.new(text)
 
       main = AST::ClassNode.create_main
       @ast = main
@@ -181,7 +146,7 @@ module Yard2steep
     # @return [void]
     def parse_method_impl(m_name, m_loc, params)
       within_context do
-        extract_p_types!(m_loc)
+        @p_types, @r_type = @comments.parse_from(m_loc)
 
         p_list = parse_params(params)
 
@@ -197,54 +162,6 @@ module Yard2steep
       end
     end
 
-    # @param [Integer] m_loc represents location of method definition
-    # @return [void]
-    def extract_p_types!(m_loc)
-      Util.assert! { m_loc >= 0 }
-      l = m_loc - 1
-      while l >= 0
-        comment = @comments_map[l]
-        break unless comment  # nil when no more comment exist
-
-        parse_comment!(comment)
-        l -= 1
-      end
-    end
-
-    # @param [String] comment
-    # @return [void]
-    def parse_comment!(comment)
-      return if try_param_comment(comment)
-      return if try_return_comment(comment)
-      raise "Must not reach here!"
-    end
-
-    # @param [String] comment
-    # @return [bool]
-    def try_param_comment(comment)
-      m = comment.match(PARAM_RE)
-      return false unless m
-
-      p = AST::PTypeNode.new(
-        p_type: normalize_type(m[1]),
-        p_name: m[2],
-        kind:   AST::PTypeNode::KIND[:normal],
-      )
-      @p_types[p.p_name] = p
-
-      true
-    end
-
-    # @param [String] comment
-    # @return [bool]
-    def try_return_comment(comment)
-      m = comment.match(RETURN_RE)
-      return false unless m
-
-      @r_type = normalize_type(m[1])
-
-      true
-    end
 
     # @param [Array] r_ast
     # @return [Array<AST::PNode>]
@@ -657,30 +574,6 @@ module Yard2steep
       end
     end
 
-    # @param [String] text
-    # @return [Hash{ String => String }]
-    def extract_comments(text)
-      # NOTE: `Ripper.lex` returns array of array such as
-      # [
-      #   [[1, 0], :on_comment, "# @param [Array] contents\n", EXPR_BEG],
-      #   ...
-      # ]
-      r = {}
-      Ripper.lex(text).each do |t|
-        # Check token type
-        type = t[1]
-        next if type != :on_comment
-        # Check comment body
-        comment = t[2]
-        next unless comment.match?(COMMENT_RE)
-
-        line = t[0][0]
-        r[line] = comment
-      end
-
-      r
-    end
-
     ##
     # Helper
 
@@ -694,35 +587,32 @@ module Yard2steep
     # @return [AST::PTypeNode]
     def type_node(p)
       if @p_types[p]
-        @p_types[p]
+        type = @p_types[p]
       else
-        AST::PTypeNode.new(
-          p_type: ANY_TYPE,
-          p_name: p,
-          kind:   AST::PTypeNode::KIND[:normal],
-        )
+        type = ANY_TYPE
       end
+
+      AST::PTypeNode.new(
+        p_type: type,
+        p_name: p,
+        kind:   AST::PTypeNode::KIND[:normal],
+      )
     end
 
     # @param [String] p
     # @return [AST::PTypeNode]
     def block_type_node(p)
       if @p_types[p]
-        @p_types[p]
+        type = @p_types[p]
       else
-        AST::PTypeNode.new(
-          p_type: ANY_BLOCK_TYPE,
-          p_name: p,
-          kind:   AST::PTypeNode::KIND[:block],
-        )
+        type = ANY_BLOCK_TYPE
       end
-    end
 
-    # @param [String] type
-    # @return [String]
-    def normalize_type(type)
-      debug_print! type
-      Type.translate(type)
+      AST::PTypeNode.new(
+        p_type: type,
+        p_name: p,
+        kind:   AST::PTypeNode::KIND[:block],
+      )
     end
   end
 end
