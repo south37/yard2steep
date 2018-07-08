@@ -2,7 +2,7 @@
 
 Generate [steep](https://github.com/soutaro/steep) type definition file from yard annotation.
 
-:warning: **This is highly experimental project. Current version is 0.1.1.**
+:warning: **This is highly experimental project. Current version is 0.1.2.**
 
 ## Installation
 
