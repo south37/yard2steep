@@ -4,7 +4,7 @@ require 'yard2steep/type/parser'
 
 module Yard2steep
   class Type
-    # @param [Strng]
+    # @param [String] text
     # @return [String]
     def self.translate(text)
       Type.new(text).translate
@@ -15,6 +15,7 @@ module Yard2steep
       @text = text
     end
 
+    # @return [String]
     def translate
       tokens = tokens(@text)
       ast = Parser.parse(tokens)
@@ -31,9 +32,14 @@ module Yard2steep
     def tokens(str)
       r = []
       s = StringScanner.new(str)
-      while !s.eos?
+      while true
         s.scan(S_RE)
-        r.push(s.scan(TOKENS))
+        break if s.eos?
+        if t = s.scan(TOKENS)
+          r.push(t)
+        else
+          raise "token must exist!"
+        end
       end
       r
     end

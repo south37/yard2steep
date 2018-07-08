@@ -13,8 +13,12 @@ end
 # @param [Array] contents
 
 class SomeClass
-  # @dynamic index
+  # @dynamic index, comment
   attr_reader :index
+  attr_reader("comment")
+end
+
+module SomeModule
 end
 
 class MyClass
@@ -60,6 +64,14 @@ class MyClass
     {}
   end
 
+  # @param [String] base
+  # @param [Integer] off
+  # @param [Hash] opt
+  # @return [String]
+  def comment(base, off = 0, opt: {})
+    ""
+  end
+
   # @param [Integer] off
   # @return [Hash{ Symbol => Integer, nil }]
   def values(off: 0)
@@ -96,6 +108,13 @@ class MyClass
   def first!(list)
     list.last
   end
+
+  # NOTE: Args after default args is not supported by steep.
+  # # @param [String] str
+  # # @param [Integer] id
+  # # @param [Array] rest
+  # def setup(str, id = 1, rest)
+  # end
 
   # NOTE: should be interpreterd as any -> any
   def present?(list)

@@ -6,6 +6,7 @@ module Yard2steep
 
       STYLE = {
         normal:               "STYLE.normal",
+        normal_with_default:  "STYLE.normal_with_default",
         keyword:              "STYLE.keyword",
         keyword_with_default: "STYLE.keyword_with_default",
       }

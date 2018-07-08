@@ -1,13 +1,13 @@
 module Yard2steep
   class Type
     class Parser
-      # @param [Array<String>]
+      # @param [Array<String>] tokens
       # @return [Array<TypeBase>]
       def self.parse(tokens)
         Parser.new(tokens).parse
       end
 
-      # @param [Array<String>]
+      # @param [Array<String>] tokens
       def initialize(tokens)
         @tokens = tokens
         @types  = []
@@ -100,6 +100,7 @@ module Yard2steep
         end
       end
 
+      # @return [HashType]
       def parse_hash
         debug_print!("parse_hash, peek: #{peek}")
 
@@ -107,8 +108,11 @@ module Yard2steep
         when '{'
           expect!('{')
           key = parse_multiple_types('=')
+          Util.assert! { key.size > 0 }
+
           expect!('>')
           val = parse_multiple_types('}')
+          Util.assert! { val.size > 0 }
           HashType.new(
             key: key,
             val: val,

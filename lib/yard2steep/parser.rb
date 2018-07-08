@@ -1,66 +1,12 @@
-require 'yard2steep/ast'
+require 'ripper'
+
 require 'yard2steep/type'
+require 'yard2steep/ast'
+require 'yard2steep/util'
 
 module Yard2steep
   class Parser
-    S_RE    = /[\s\t]*/
-    S_P_RE  = /[\s\t]+/
-    PRE_RE  = /^#{S_RE}/
-    POST_RE = /#{S_RE}$/
-
-    CLASS_RE = /
-      #{PRE_RE}
-      (class)
-      #{S_P_RE}
-      (\w+)
-      (
-        #{S_P_RE}
-        <
-        #{S_P_RE}
-        \w+
-      )?
-      #{POST_RE}
-    /x
-    MODULE_RE = /
-      #{PRE_RE}
-      (module)
-      #{S_P_RE}
-      (\w+)
-      #{POST_RE}
-    /x
-    S_CLASS_RE = /#{PRE_RE}class#{S_P_RE}<<#{S_P_RE}\w+#{POST_RE}/
-    END_RE     = /#{PRE_RE}end#{POST_RE}/
-
-    CONSTANT_ASSIGN_RE = /
-      #{PRE_RE}
-      (
-        [A-Z\d_]+
-      )
-      #{S_RE}
-      =
-      .*
-      #{POST_RE}
-    /x
-
-    # TODO(south37) `POSTFIX_IF_RE` is wrong. Fix it.
-    POSTFIX_IF_RE = /
-      #{PRE_RE}
-      (?:return|break|next|p|print|raise)
-      #{S_P_RE}
-      .*
-      (?:if|unless)
-      #{S_P_RE}
-      .*
-      $
-    /x
-
-    BEGIN_END_RE = /
-      #{S_P_RE}
-      (if|unless|do|while|until|case|for|begin)
-      (?:#{S_P_RE}.*)?
-    $/x
-
-    COMMENT_RE         = /#{PRE_RE}#/
+    S_RE = /[\s\t]*/
     TYPE_WITH_PAREN_RE = /
       \[
       (
@@ -69,72 +15,29 @@ module Yard2steep
       )
       \]
     /x
-
-    PARAM_RE  = /
-      #{COMMENT_RE}
-      #{S_P_RE}
-      @param
-      #{S_P_RE}
+    COMMENT_RE = /^
+      \#
+      #{S_RE}
+      @(?:param|return)
+      #{S_RE}
       #{TYPE_WITH_PAREN_RE}
-      #{S_P_RE}
+    /x
+    PARAM_RE  = /
+      \#
+      #{S_RE}
+      @param
+      #{S_RE}
+      #{TYPE_WITH_PAREN_RE}
+      #{S_RE}
       (\w+)
     /x
     RETURN_RE = /
-      #{COMMENT_RE}
-      #{S_P_RE}
+      \#
+      #{S_RE}
       @return
-      #{S_P_RE}
+      #{S_RE}
       #{TYPE_WITH_PAREN_RE}
     /x
-
-    PAREN_RE = /
-      \(
-        ([^)]*)
-      \)
-    /x
-
-    # NOTE: This implementation should be fixed.
-    ARGS_RE   = /
-      #{S_RE}
-      \(
-        [^)]*
-      \)
-      |
-      #{S_P_RE}
-      .*
-    /x
-
-    METHOD_RE = /
-      #{PRE_RE}
-      def
-      #{S_P_RE}
-      (
-        (?:\w+\.)?
-        \w+
-        (?:\!|\?)?
-      )
-      #{S_RE}
-      (
-        (?:#{ARGS_RE})
-        ?
-      )
-      #{POST_RE}
-    /x
-
-    # TODO(south37) Support attr_writer, attr_accessor
-    ATTR_RE = /
-      #{PRE_RE}
-      attr_reader
-      #{S_P_RE}
-      (:\w+.*)
-      #{POST_RE}
-    /x
-
-    STATES = {
-      class:   "STATES.class",
-      s_class: "STATES.s_class",  # singleton class
-      method:  "STATES.method",
-    }
 
     ANY_TYPE = 'any'
     ANY_BLOCK_TYPE = '{ (any) -> any }'
@@ -146,18 +49,7 @@ module Yard2steep
       # NOTE: set at parse
       @file = nil
 
-      main = AST::ClassNode.create_main
-      @ast = main
-
-      # Stack of parser state
-      @stack = [STATES[:class]]
-      # Parser state. Being last one of STATES in @stack.
-      @state = STATES[:class]
-
-      # NOTE: reset class context
-      @current_class = main
-
-      reset_method_context!
+      @comments_map = {}
     end
 
     # @param [String] file
@@ -167,171 +59,170 @@ module Yard2steep
     def parse(file, text, debug: false)
       @debug = debug
 
+      @file = file
       debug_print!("Start parsing: #{file}")
 
-      @file = file
-      text.split(/\n|;/).each do |l|
-        parse_line(l)
-      end
+      @comments_map = extract_comments(text)
+
+      main = AST::ClassNode.create_main
+      @ast = main
+
+      # NOTE: reset class context
+      @current_class = main
+
+      parse_program(text)
 
       @ast
     end
 
-  private
-
+    # @param [String] text
     # @return [void]
-    def reset_method_context!
-      # Current method context. Flushed when method definition is parsed.
-      @p_types = {}
-      @r_type  = nil
-      @m_name  = nil
+    def parse_program(text)
+      r_ast = Ripper.sexp(text)
+      # NOTE: r_ast is array such as
+      # [:program,
+      #   [...]]
+      Util.assert! { r_ast[0] == :program && r_ast[1].is_a?(Array) }
+      parse_stmts(r_ast[1])
     end
 
-    # NOTE: Current implementation override `@p_type`, `@r_type` if it appears
-    # multiple times before method definition.
-    #
-    # @param [String] l
+    # @param [Array] r_ast
     # @return [void]
-    def parse_line(l)
-      # At first, try parsing comment
-      return if try_parse_comment(l)
-
-      return if try_parse_end(l)
-      return if try_parse_postfix_if(l)
-      return if try_parse_begin_end(l)
-
-      case @state
-      when STATES[:class]
-        return if try_parse_constant(l)
-        return if try_parse_class(l)
-        return if try_parse_singleton_class(l)
-        return if try_parse_method(l)
-        return if try_parse_attr(l)
-      when STATES[:s_class]
-        return if try_parse_method_with_no_action(l)
-      when STATES[:method]
-        # Do nothing
-      else
-        raise "invalid state: #{@state}"
-      end
-
-      # NOTE: Reach here when other case
-    end
-
-    # @param [String] l
-    # @return [bool]
-    def try_parse_comment(l)
-      return false unless l.match?(COMMENT_RE)
-
-      try_parse_param_or_return(l)
-
-      true
-    end
-
-    # @param [String] l
-    # @return [bool]
-    def try_parse_param_or_return(l)
-      if @state == STATES[:class]
-        return if try_parse_param(l)
-        return if try_parse_return(l)
+    def parse_stmts(r_ast)
+      r_ast.each do |node|
+        parse_stmt(node)
       end
     end
 
-    # @param [String] l
-    # @return [bool]
-    def try_parse_end(l)
-      return false unless l.match?(END_RE)
+    # @param [Array] r_ast
+    # @return [void]
+    def parse_stmt(r_ast)
+      n_type = r_ast[0]
 
-      # NOTE: Print before pop state, so offset is -2
-      debug_print!("end", offset: -2)
-
-      if stack_is_empty?
-        raise "Invalid end: #{@file}"
+      case n_type
+      when :defs
+        parse_defs(r_ast)
+      when :def
+        parse_def(r_ast)
+      when :class, :module
+        parse_class_or_module(r_ast)
+      when :assign
+        parse_assign(r_ast)
+      when :command
+        parse_command(r_ast)
+      when :method_add_arg
+        parse_method_add_arg(r_ast)
       end
 
-      pop_state!
-
-      true
+      # Do nothing for other stmt
     end
 
-    # NOTE: This implementation is wrong. Used only for skipping postfix if.
-    #
-    # @param [String] l
-    # @return [bool]
-    def try_parse_postfix_if(l)
-      l.match?(POSTFIX_IF_RE)
+    # @param [Array] r_ast
+    # @return [void]
+    def parse_defs(r_ast)
+      # NOTE: r_ast is array such as
+      # [:defs,
+      #   [:var_ref, [:@kw, "self", [1, 14]]],
+      #   [:@period, ".", [1, 18]],
+      #   [:@ident, "my_method", [1, 19]],
+      #   [:params, nil, nil, nil, nil, nil, nil, nil],
+      #   [:bodystmt, [[:void_stmt]], nil, nil, nil]]
+
+      Util.assert! {
+        r_ast.size == 6 &&
+          r_ast[0] == :defs &&
+            r_ast[1][0] == :var_ref &&
+            r_ast[1][1][0] == :@kw &&
+            r_ast[1][1][1].is_a?(String) &&
+            r_ast[1][1][2].is_a?(Array) &&
+            r_ast[2][0] == :@period &&
+            r_ast[3][0] == :@ident &&
+            r_ast[3][1].is_a?(String)
+      }
+
+      m_name = "#{r_ast[1][1][1]}.#{r_ast[3][1]}"
+      m_loc  = r_ast[1][1][2][0]
+      params = r_ast[4]
+      # NOTE: We also want to check bodystmt
+      # bodystmt = r_ast[5]
+
+      parse_method_impl(m_name, m_loc, params)
     end
 
-    # @param [String] l
-    # @return [bool]
-    def try_parse_begin_end(l)
-      m = l.match(BEGIN_END_RE)
-      return false unless m
+    # @param [Array] r_ast
+    # @return [void]
+    def parse_def(r_ast)
+      # NOTE: r_ast is array such as
+      # [:def,
+      #   [:@ident, "first", [3, 4]],
+      #   [:paren, [:params, ...]],
+      #   [:bodystmt, [[:array, nil]], nil, nil, nil]]]
 
-      debug_print!(m[1])
+      Util.assert! {
+        r_ast.size == 4 &&
+          r_ast[0] == :def &&
+          r_ast[1][0] == :@ident &&
+          r_ast[1][1].is_a?(String) &&
+          r_ast[1][2].is_a?(Array)
+      }
 
-      push_state!(m[1])
+      m_name = r_ast[1][1]
+      m_loc  = r_ast[1][2][0]
+      params = r_ast[2]
+      # NOTE: We also want to check bodystmt
+      # bodystmt = r_ast[3]
 
-      true
+      parse_method_impl(m_name, m_loc, params)
     end
 
-    # @param [String] l
-    # @return [bool]
-    def try_parse_class(l)
-      m = (l.match(MODULE_RE) || l.match(CLASS_RE))
-      return false unless m
+    # @param [String] m_name
+    # @param [Integer] m_loc
+    # @param [Array] params
+    # @return [void]
+    def parse_method_impl(m_name, m_loc, params)
+      within_context do
+        extract_p_types!(m_loc)
 
-      debug_print!("#{m[1]} #{m[2]}")
+        p_list = parse_params(params)
 
-      # NOTE: If class definition is found before method definition, yard
-      # annotation is ignored.
-      reset_method_context!
+        # NOTE: We also want to check bodystmt
+        # parse_mbody(bodystmt)
 
-      c = AST::ClassNode.new(
-        kind:    m[1],
-        c_name:  m[2],
-        super_c: m[3] && m[3].gsub('<', '').strip,
-        parent:  @current_class,
-      )
-      @current_class.append_child(c)
-      @current_class = c
-
-      push_state!(STATES[:class])
-
-      true
+        m_node = AST::MethodNode.new(
+          p_list: p_list,
+          r_type: (@r_type || ANY_TYPE),
+          m_name: m_name,
+        )
+        @current_class.append_m(m_node)
+      end
     end
 
-    # @param [String] l
-    # @return [bool]
-    def try_parse_constant(l)
-      m = l.match(CONSTANT_ASSIGN_RE)
-      return false unless m
+    # @param [Integer] m_loc represents location of method definition
+    # @return [void]
+    def extract_p_types!(m_loc)
+      Util.assert! { m_loc >= 0 }
+      l = m_loc - 1
+      while l >= 0
+        comment = @comments_map[l]
+        break unless comment  # nil when no more comment exist
 
-      c = AST::ConstantNode.new(
-        name:  m[1],
-        klass: @current_class,
-      )
-      @current_class.append_constant(c)
-      true
+        parse_comment!(comment)
+        l -= 1
+      end
     end
 
-    # @param [String] l
-    # @return [bool]
-    def try_parse_singleton_class(l)
-      m = l.match(S_CLASS_RE)
-      return false unless m
-
-      debug_print!("class <<")
-
-      push_state!(STATES[:s_class])
-
-      true
+    # @param [String] comment
+    # @return [void]
+    def parse_comment!(comment)
+      return if try_param_comment(comment)
+      return if try_return_comment(comment)
+      raise "Must not reach here!"
     end
 
-    # @param [String] l
+    # @param [String] comment
     # @return [bool]
-    def try_parse_param(l)
-      m = l.match(PARAM_RE)
+    def try_param_comment(comment)
+      m = comment.match(PARAM_RE)
       return false unless m
 
       p = AST::PTypeNode.new(
@@ -344,10 +235,10 @@ module Yard2steep
       true
     end
 
-    # @param [String] l
+    # @param [String] comment
     # @return [bool]
-    def try_parse_return(l)
-      m = l.match(RETURN_RE)
+    def try_return_comment(comment)
+      m = comment.match(RETURN_RE)
       return false unless m
 
       @r_type = normalize_type(m[1])
@@ -355,94 +246,399 @@ module Yard2steep
       true
     end
 
-    # @param [String] l
-    # @return [bool]
-    def try_parse_method(l)
-      m = l.match(METHOD_RE)
-      return false unless m
-
-      debug_print!("def #{m[1]}")
-
-      Util.assert! { m[1].is_a?(String) && m[2].is_a?(String) }
-
-      @m_name = m[1]
-      p_list = parse_method_params(m[2].strip)
-
-      m_node = AST::MethodNode.new(
-        p_list: p_list,
-        r_type: (@r_type || ANY_TYPE),
-        m_name: @m_name,
-      )
-      @current_class.append_m(m_node)
-      reset_method_context!
-
-      push_state!(STATES[:method])
-
-      true
-    end
-
-    # @param [String] l
-    # @return [bool]
-    def try_parse_method_with_no_action(l)
-      m = l.match(METHOD_RE)
-      return false unless m
-
-      debug_print!("def #{m[1]}")
-
-      # Do no action
-
-      push_state!(STATES[:method])
-
-      true
-    end
-
-    # @param [String] params_s
+    # @param [Array] r_ast
     # @return [Array<AST::PNode>]
-    def parse_method_params(params_s)
-      Util.assert! { params_s.is_a?(String) }
+    def parse_params(r_ast)
+      # NOTE: parrams is `paren_params` or `no_paren_params`
+      # paren_params: [:paren, [:params, ...]]
+      # no_paren_params: [:params, ...]
+      case r_ast[0]
+      when :paren
+        parse_paren_params(r_ast)
+      when :params
+        parse_no_paren_params(r_ast)
+      else
+        raise "invalid node"
+      end
+    end
 
-      # NOTE: Remove parenthesis
-      if (m = params_s.match(PAREN_RE))
-        params_s = m[1]
+    # @param [Array] r_ast
+    # @return [Array<AST::PNode>]
+    def parse_paren_params(r_ast)
+      # NOTE: r_ast is array such as
+      # [:paren, [:params, ...]]
+      Util.assert! {
+        r_ast[0] == :paren &&
+          r_ast[1].is_a?(Array) &&
+          r_ast[1][0] == :params
+      }
+      parse_no_paren_params(r_ast[1])
+    end
+
+    # @param [Array] params
+    # @return [Array<AST::PNode>]
+    def parse_no_paren_params(params)
+      # NOTE: params is array such as
+      # [:params,
+      #   nil,
+      #   nil,
+      #   nil,
+      #   nil,
+      #   [
+      #     [
+      #       [:@label, "contents:", [3, 10]],
+      #       false
+      #     ]
+      #   ],
+      #   nil,
+      #   nil
+      # ]],
+      Util.assert! { params[0] == :params && params.size == 8 }
+
+      r = []
+      n_params = (params[1] || [])
+      # NOTE: n_params is array such as
+      # [[:@ident, "a", [1, 7]], ...]
+      n_params.each do |key|
+        # TODO(south37) Optimize this check
+        Util.assert! { key[0] == :@ident && key[1].is_a?(String) }
+        name = key[1]
+        r.push(
+          AST::PNode.new(
+            type_node: type_node(name),
+            style:     AST::PNode::STYLE[:normal],
+          )
+        )
       end
 
-      if params_s == ''
-        if @p_types.size > 0
-          print "warn: #{@m_name} has no args, but annotated as #{@p_types}"
-        end
-        return []
+      v_params = (params[2] || [])
+      # NOTE: v_params is array such as
+      # [
+      #   [
+      #     [:@ident, "a", [1, 7]],
+      #     [:@int, "2", [1, 9]]
+      #   ],
+      #   ...
+      # ]
+      v_params.each do |v_param|
+        key, default_v = v_param
+
+        # TODO(south37) Optimize this check
+        Util.assert! {
+          key[0] == :@ident &&
+            key[1].is_a?(String) &&
+            default_v.is_a?(Array)
+        }
+        name = key[1]
+        r.push(
+          AST::PNode.new(
+            type_node: type_node(name),
+            style:     AST::PNode::STYLE[:normal_with_default],
+          )
+        )
       end
 
-      params_s.split(',').map { |s| s.strip }.map do |p|
-        if p.include?(':')
-          name, default_value = p.split(':')
-          if default_value
+      n_params2 = (params[4] || [])
+      # NOTE: n_params2 is array such as
+      # [[:@ident, "a", [1, 7]], ...]
+      n_params2.each do |key|
+        # TODO(south37) Optimize this check
+        Util.assert! { key[0] == :@ident && key[1].is_a?(String) }
+        name = key[1]
+        r.push(
+          AST::PNode.new(
+            type_node: type_node(name),
+            style:     AST::PNode::STYLE[:normal],
+          )
+        )
+      end
+
+      k_params = (params[5] || [])
+      # NOTE: k_params is array such as
+      # [
+      #   [
+      #     [:@label, "contents:", [3, 10]],
+      #     false
+      #   ],
+      #   ...
+      # ],
+      k_params.each do |v_param|
+        key, default_v = v_param
+
+        # TODO(south37) Optimize this check
+        Util.assert! {
+          key[0] == :@label &&
+            key[1][-1] == ':'
+        }
+        name = key[1][0..-2]
+        if default_v
+          r.push(
             AST::PNode.new(
               type_node: type_node(name),
               style:     AST::PNode::STYLE[:keyword_with_default],
             )
-          else
+          )
+        else
+          r.push(
             AST::PNode.new(
               type_node: type_node(name),
               style:     AST::PNode::STYLE[:keyword],
             )
-          end
-        else
-          AST::PNode.new(
-            type_node: type_node(p),
-            style:     AST::PNode::STYLE[:normal],
           )
         end
       end
+
+      b_param = params[7]
+      # NOTE: b_params is array such as
+      # [:blockarg, [:@ident, "block", [1, 8]]]
+      if b_param
+        Util.assert! {
+          b_param[0] == :blockarg &&
+            b_param[1].is_a?(Array) &&
+            b_param[1][0] == :@ident &&
+            b_param[1][1].is_a?(String)
+        }
+        name = b_param[1][1]
+        r.push(
+          AST::PNode.new(
+            type_node: block_type_node(name),
+            style:     AST::PNode::STYLE[:normal],
+          )
+        )
+      end
+
+      # NOTE: params[3] is `*a`, params[6] is `**a`
+
+      r
     end
 
-    # @param [String] l
-    # @return [bool]
-    def try_parse_attr(l)
-      m = l.match(ATTR_RE)
-      return false unless m
+    # @return [void]
+    def within_context(&block)
+      # Current method context.
+      @p_types = {}
+      @r_type  = nil
+      block.call
+    end
 
-      ivars = m[1].split(",").map { |s| s.strip.gsub(/^:/, '') }
+    # @param [Array] r_ast
+    # @return [void]
+    def parse_class_or_module(r_ast)
+      # NOTE: r_ast is array such as
+      # [:class,
+      #   [:const_ref, [:@const, "OtherClass", [119, 6]]],
+      #   [:var_ref, [:@const, "MyClass", [119, 19]]],
+      #   [:bodystmt, [...]]]
+
+      kind = r_ast[0].to_s
+
+      case kind
+      when "class"
+        Util.assert! { r_ast.size == 4 }
+        c_name_node   = r_ast[1]
+        super_c_node  = r_ast[2]
+        bodystmt_node = r_ast[3]
+      when "module"
+        Util.assert! { r_ast.size == 3 }
+        c_name_node   = r_ast[1]
+        super_c_node  = nil
+        bodystmt_node = r_ast[2]
+      else
+        raise "invalid kind: #{kind}"
+      end
+
+      Util.assert! {
+        c_name_node[0] == :const_ref &&
+          c_name_node[1].is_a?(Array) &&
+          c_name_node[1][0] == :@const &&
+          c_name_node[1][1].is_a?(String)
+      }
+      c_name = c_name_node[1][1]
+      Util.assert! {
+        !super_c_node || (
+          super_c_node[0] == :var_ref &&
+            super_c_node[1].is_a?(Array) &&
+            super_c_node[1][0] == :@const &&
+            super_c_node[1][1].is_a?(String)
+        )
+      }
+      super_c_name = super_c_node ? super_c_node[1][1] : nil
+
+      c = AST::ClassNode.new(
+        kind:    kind,
+        c_name:  c_name,
+        super_c: super_c_name,
+        parent:  @current_class,
+      )
+      @current_class.append_child(c)
+      @current_class = c
+
+      parse_bodystmt(bodystmt_node)
+
+      @current_class = @current_class.parent
+    end
+
+    # @param [Array] r_ast
+    # @return [void]
+    def parse_bodystmt(r_ast)
+      # NOTE:
+      # [:bodystmt,
+      #   [...]]
+      Util.assert! {
+        r_ast[0] == :bodystmt &&
+          r_ast[1].is_a?(Array)
+      }
+      parse_stmts(r_ast[1])
+    end
+
+    # @param [Array] r_ast
+    # @return [void]
+    def parse_assign(r_ast)
+      # NOTE: r_ast is array such as
+      # [:assign,
+      #   [:var_field, [:@const, "DNA", [1, 15]]],
+      #   [...]]
+      Util.assert! {
+        r_ast[0] == :assign &&
+          r_ast[1].is_a?(Array) &&
+          r_ast[1][0] == :var_field
+      }
+      var_type = r_ast[1][1][0]
+      if var_type == :@const
+        # TODO(south37) Check the value node to predict the type of the const.
+        c = AST::ConstantNode.new(
+          name:  r_ast[1][1][1],
+          klass: @current_class,
+        )
+        @current_class.append_constant(c)
+      end
+    end
+
+    # @param [Array] r_ast
+    # @return [void]
+    def parse_command(r_ast)
+      # NOTE: r_ast is array such as
+      # [:command,
+      #   [:@ident, "attr_reader", [1, 15]],
+      #   [:args_add_block,
+      #     [
+      #       [:symbol_literal, [:symbol, [:@ident, "ok", [1, 28]]]]
+      #     ],
+      #     false
+      #   ]
+      # ]
+      Util.assert! {
+        r_ast[0] == :command &&
+          r_ast[1].is_a?(Array)
+      }
+
+      # NOTE: check attr_*
+      if r_ast[1][0] == :@ident
+        case r_ast[1][1]
+        when "attr_reader"
+          parse_attr_reader(parse_command_args_add_block(r_ast[2]))
+        when "attr_writer"
+          # TODO(south37) Impl
+          # parse_attr_writer(parse_command_args_add_block(r_ast[2]))
+        when "attr_accessor"
+          # TODO(south37) Impl
+          # parse_attr_accessor(parse_command_args_add_block(r_ast[2]))
+        end
+
+        # Do nothing for other case
+      end
+    end
+
+    # @param [Array] r_ast
+    # @return [Array<String>]
+    def parse_command_args_add_block(r_ast)
+      # NOTE: r_ast is array such as
+      #
+      # [:args_add_block,
+      #   [
+      #     [:symbol_literal, [:symbol, [:@ident, "ok", [1, 28]]]],
+      #     [:symbol_literal, [:symbol, [:@ident, "no", [1, 33]]]],
+      #     [:string_literal, [:string_content, [:@tstring_content, "b", [1, 38]]]]
+      #   ],
+      #   false
+      # ]
+      Util.assert! {
+        r_ast[0] == :args_add_block &&
+          r_ast[1].is_a?(Array)
+      }
+      r = []
+      r_ast[1].each do |ast|
+        case ast[0]
+        when :symbol_literal
+          Util.assert! {
+            ast[1].is_a?(Array) &&
+              ast[1][0] == :symbol &&
+              ast[1][1].is_a?(Array) &&
+              ast[1][1][0] == :@ident &&
+              ast[1][1][1].is_a?(String)
+          }
+          r.push(ast[1][1][1])
+        when :string_literal
+          Util.assert! {
+            ast[1].is_a?(Array) &&
+              ast[1][0] == :string_content &&
+              ast[1][1].is_a?(Array) &&
+              ast[1][1][0] == :@tstring_content &&
+              ast[1][1][1].is_a?(String)
+          }
+          r.push(ast[1][1][1])
+        end
+        # Do nothing for other case
+      end
+      r
+    end
+
+    # @param [Array] r_ast
+    # @return [void]
+    def parse_method_add_arg(r_ast)
+      # NOTE: r_ast is Array such as
+      # [:method_add_arg,
+      #   [:fcall, [:@ident, "attr_reader", [1, 15]]],
+      #   [:arg_paren,
+      #     [
+      #       :args_add_block,
+      #       [
+      #         [:symbol_literal, [:symbol, [:@ident, "ok", [1, 28]]]]
+      #       ],
+      #       false
+      #     ]
+      #   ]
+      # ]
+      Util.assert! {
+        r_ast[0] == :method_add_arg &&
+          r_ast[1].is_a?(Array) &&
+          r_ast[1][0] == :fcall &&
+          r_ast[1][1].is_a?(Array) &&
+          r_ast[2].is_a?(Array) &&
+          r_ast[2][0] == :arg_paren &&
+          r_ast[2][1].is_a?(Array) &&
+          r_ast[2][1][0] == :args_add_block &&
+          r_ast[2][1][1].is_a?(Array)
+      }
+
+      # NOTE: check attr_*
+      if r_ast[1][1][0] == :@ident
+        case r_ast[1][1][1]
+        when "attr_reader"
+          parse_attr_reader(parse_command_args_add_block(r_ast[2][1]))
+        when "attr_writer"
+          # TODO(south37) Impl
+          # parse_attr_writer(parse_command_args_add_block(r_ast[2][1]))
+        when "attr_accessor"
+          # TODO(south37) Impl
+          # parse_attr_accessor(parse_command_args_add_block(r_ast[2][1]))
+        end
+        # Do nothing for other case
+      end
+    end
+
+    # @param [Array<String>] vars
+    # @return [void]
+    def parse_attr_reader(ivars)
       ivars.each do |ivarname|
         @current_class.append_ivar(
           AST::IVarNode.new(
@@ -459,41 +655,40 @@ module Yard2steep
           )
         )
       end
-
-      true
     end
 
-    # @param [String] state
-    # @return [void]
-    def push_state!(state)
-      if STATES.values.include?(state)
-        @state = state
+    # @param [String] text
+    # @return [Hash{ String => String }]
+    def extract_comments(text)
+      # NOTE: `Ripper.lex` returns array of array such as
+      # [
+      #   [[1, 0], :on_comment, "# @param [Array] contents\n", EXPR_BEG],
+      #   ...
+      # ]
+      r = {}
+      Ripper.lex(text).each do |t|
+        # Check token type
+        type = t[1]
+        next if type != :on_comment
+        # Check comment body
+        comment = t[2]
+        next unless comment.match?(COMMENT_RE)
+
+        line = t[0][0]
+        r[line] = comment
       end
-      @stack.push(state)
-    end
 
-    # @return [void]
-    def pop_state!
-      state = @stack.pop
-      if STATES.values.include?(state)
-        # Restore prev class
-        if state == STATES[:class]
-          @current_class = @current_class.parent
-        end
-
-        # Restore prev state
-        @state = @stack.select { |s| STATES.values.include?(s) }.last
-        Util.assert! { !@state.nil? }
-      end
-    end
-
-    # @return [bool]
-    def stack_is_empty?
-      @stack.size <= 1
+      r
     end
 
     ##
     # Helper
+
+    # @param [String] message
+    # @return [void]
+    def debug_print!(message)
+      print "#{message}\n" if @debug
+    end
 
     # @param [String] p
     # @return [AST::PTypeNode]
@@ -501,28 +696,26 @@ module Yard2steep
       if @p_types[p]
         @p_types[p]
       else
-        # NOTE: `&` represents block variable
-        if p[0] == '&'
-          AST::PTypeNode.new(
-            p_type: ANY_BLOCK_TYPE,
-            p_name: p[1..-1],
-            kind:   AST::PTypeNode::KIND[:block],
-          )
-        else
-          AST::PTypeNode.new(
-            p_type: ANY_TYPE,
-            p_name: p,
-            kind:   AST::PTypeNode::KIND[:normal],
-          )
-        end
+        AST::PTypeNode.new(
+          p_type: ANY_TYPE,
+          p_name: p,
+          kind:   AST::PTypeNode::KIND[:normal],
+        )
       end
     end
 
-    # @param [String] message
-    # @param [Integer] offset
-    # @return [void]
-    def debug_print!(message, offset: 0)
-      print "#{' ' * (@stack.size * 2 + offset)}#{message}\n" if @debug
+    # @param [String] p
+    # @return [AST::PTypeNode]
+    def block_type_node(p)
+      if @p_types[p]
+        @p_types[p]
+      else
+        AST::PTypeNode.new(
+          p_type: ANY_BLOCK_TYPE,
+          p_name: p,
+          kind:   AST::PTypeNode::KIND[:block],
+        )
+      end
     end
 
     # @param [String] type

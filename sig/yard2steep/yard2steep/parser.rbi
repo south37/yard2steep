@@ -1,48 +1,37 @@
 class Yard2steep::Parser
   def initialize: -> any
   def parse: (String, String, ?debug: bool) -> AST::ClassNode
-  def reset_method_context!: -> void
-  def parse_line: (String) -> void
-  def try_parse_comment: (String) -> bool
-  def try_parse_param_or_return: (String) -> bool
-  def try_parse_end: (String) -> bool
-  def try_parse_postfix_if: (String) -> bool
-  def try_parse_begin_end: (String) -> bool
-  def try_parse_class: (String) -> bool
-  def try_parse_constant: (String) -> bool
-  def try_parse_singleton_class: (String) -> bool
-  def try_parse_param: (String) -> bool
-  def try_parse_return: (String) -> bool
-  def try_parse_method: (String) -> bool
-  def try_parse_method_with_no_action: (String) -> bool
-  def parse_method_params: (String) -> Array<AST::PNode>
-  def try_parse_attr: (String) -> bool
-  def push_state!: (String) -> void
-  def pop_state!: -> void
-  def stack_is_empty?: -> bool
+  def parse_program: (String) -> void
+  def parse_stmts: (Array<any>) -> void
+  def parse_stmt: (Array<any>) -> void
+  def parse_defs: (Array<any>) -> void
+  def parse_def: (Array<any>) -> void
+  def parse_method_impl: (String, Integer, Array<any>) -> void
+  def extract_p_types!: (Integer) -> void
+  def parse_comment!: (String) -> void
+  def try_param_comment: (String) -> bool
+  def try_return_comment: (String) -> bool
+  def parse_params: (Array<any>) -> Array<AST::PNode>
+  def parse_paren_params: (Array<any>) -> Array<AST::PNode>
+  def parse_no_paren_params: (Array<any>) -> Array<AST::PNode>
+  def within_context: { (any) -> any } -> void
+  def parse_class_or_module: (Array<any>) -> void
+  def parse_bodystmt: (Array<any>) -> void
+  def parse_assign: (Array<any>) -> void
+  def parse_command: (Array<any>) -> void
+  def parse_command_args_add_block: (Array<any>) -> Array<String>
+  def parse_method_add_arg: (Array<any>) -> void
+  def parse_attr_reader: (any) -> void
+  def extract_comments: (String) -> Hash<String, String>
+  def debug_print!: (String) -> void
   def type_node: (String) -> AST::PTypeNode
-  def debug_print!: (String, ?offset: Integer) -> void
+  def block_type_node: (String) -> AST::PTypeNode
   def normalize_type: (String) -> String
 end
 Yard2steep::Parser::S_RE: any
-Yard2steep::Parser::S_P_RE: any
-Yard2steep::Parser::PRE_RE: any
-Yard2steep::Parser::POST_RE: any
-Yard2steep::Parser::CLASS_RE: any
-Yard2steep::Parser::MODULE_RE: any
-Yard2steep::Parser::S_CLASS_RE: any
-Yard2steep::Parser::END_RE: any
-Yard2steep::Parser::CONSTANT_ASSIGN_RE: any
-Yard2steep::Parser::POSTFIX_IF_RE: any
-Yard2steep::Parser::BEGIN_END_RE: any
-Yard2steep::Parser::COMMENT_RE: any
 Yard2steep::Parser::TYPE_WITH_PAREN_RE: any
+Yard2steep::Parser::COMMENT_RE: any
 Yard2steep::Parser::PARAM_RE: any
 Yard2steep::Parser::RETURN_RE: any
-Yard2steep::Parser::PAREN_RE: any
-Yard2steep::Parser::ARGS_RE: any
-Yard2steep::Parser::METHOD_RE: any
-Yard2steep::Parser::ATTR_RE: any
-Yard2steep::Parser::STATES: any
 Yard2steep::Parser::ANY_TYPE: any
 Yard2steep::Parser::ANY_BLOCK_TYPE: any
