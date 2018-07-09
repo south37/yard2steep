@@ -25,7 +25,7 @@ module Yard2steep
           @types.push(parse_type)
         end
 
-        @types
+        UnionType.new(types: @types)
       end
 
     private
@@ -85,19 +85,19 @@ module Yard2steep
         case peek
         when '<'
           expect!('<')
-          ArrayType.new(
-            type: parse_multiple_types('>')
+          type = UnionType.new(
+            types: parse_multiple_types('>')
           )
         when '('
           expect!('(')
-          ArrayType.new(
-            type: parse_multiple_types(')')
+          type = UnionType.new(
+            types: parse_multiple_types(')')
           )
         else
-          ArrayType.new(
-            type: [AnyType.new]
-          )
+          type = AnyType.new
         end
+
+        ArrayType.new(type: type)
       end
 
       # @return [HashType]
@@ -107,20 +107,18 @@ module Yard2steep
         case peek
         when '{'
           expect!('{')
-          key = parse_multiple_types('=')
-          Util.assert! { key.size > 0 }
-
+          key = UnionType.new(types: parse_multiple_types('='))
           expect!('>')
-          val = parse_multiple_types('}')
-          Util.assert! { val.size > 0 }
+          val = UnionType.new(types: parse_multiple_types('}'))
+
           HashType.new(
             key: key,
             val: val,
           )
         else
           HashType.new(
-            key: [AnyType.new],
-            val: [AnyType.new],
+            key: AnyType.new,
+            val: AnyType.new,
           )
         end
       end
