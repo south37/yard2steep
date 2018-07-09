@@ -1,14 +1,13 @@
 module Yard2steep
   class Type
     class TypeBase
-      # @param [Array<TypeBase>] types
-      # @return [String]
-      def self.union2s(types)
-        types.map { |t| t.to_s }.uniq.join(' | ')
+      def to_s
+        raise "Must be implemented in child class"
       end
     end
 
     class AnyType < TypeBase
+      # @return [String]
       def to_s
         'any'
       end
@@ -26,26 +25,40 @@ module Yard2steep
     end
 
     class ArrayType < TypeBase
-      # @param [Array<TypeBase>] type
+      # @param [TypeBase] type
       def initialize(type:)
         @type = type
       end
 
+      # @return [String]
       def to_s
-        "Array<#{TypeBase.union2s(@type)}>"
+        "Array<#{@type}>"
       end
     end
 
     class HashType < TypeBase
-      # @param [Array<TypeBase>] key
-      # @param [Array<TypeBase>] val
+      # @param [TypeBase] key
+      # @param [TypeBase] val
       def initialize(key:, val:)
         @key = key
         @val = val
       end
 
+      # @return [String]
       def to_s
-        "Hash<#{TypeBase.union2s(@key)}, #{TypeBase.union2s(@val)}>"
+        "Hash<#{@key}, #{@val}>"
+      end
+    end
+
+    class UnionType < TypeBase
+      def initialize(types:)
+        Util.assert! { types.size > 0 }
+        @types = types
+      end
+
+      # @return [String]
+      def to_s
+        @types.map { |t| t.to_s }.uniq.join(' | ')
       end
     end
   end

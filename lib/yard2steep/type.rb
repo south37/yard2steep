@@ -19,7 +19,7 @@ module Yard2steep
     def translate
       tokens = tokens(@text)
       ast = Parser.parse(tokens)
-      TypeBase.union2s(ast)
+      ast.to_s
     end
 
     S_RE = /[\s\t]*/
