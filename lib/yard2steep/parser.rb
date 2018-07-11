@@ -421,12 +421,74 @@ module Yard2steep
       }
       var_type = r_ast[1][1][0]
       if var_type == :@const
-        # TODO(south37) Check the value node to predict the type of the const.
-        c = AST::ConstantNode.new(
-          name:  r_ast[1][1][1],
-          klass: @current_class,
-        )
-        @current_class.append_constant(c)
+        parse_assign_constant(name: r_ast[1][1][1], v_ast: r_ast[2])
+      end
+    end
+
+    # @param [String] name
+    # @param [Array] v_ast
+    # @return [void]
+    def parse_assign_constant(name:, v_ast:)
+      c = AST::ConstantNode.new(
+        name:   name,
+        klass:  @current_class,
+        v_type: type_of(v_ast),
+      )
+      @current_class.append_constant(c)
+    end
+
+    # @param [Array] r_ast
+    # @return [String]
+    def type_of(r_ast)
+      # NOTE: r_ast is array such as
+      #
+      # String example:
+      # [:string_literal,
+      #   [:string_content,
+      #     [:@tstring_content, "String...", [34, 15]]
+      #   ]
+      # ]
+      #
+      # Regexp example:
+      # [:regexp_literal,
+      #   [
+      #     [:@tstring_content, "this is re", [35, 15]]
+      #   ],
+      #   [:@regexp_end, "/", [35, 25]]
+      # ]
+      #
+      # nil example:
+      # [:var_ref, [:@kw, "nil", [40, 14]]]
+
+      case r_ast[0]
+      when :string_literal
+        'String'
+      when :regexp_literal
+        'Regexp'
+      when :symbol_literal
+        'Symbol'
+      when :dot2
+        'Range<any>'
+      when :@int
+        'Integer'
+      when :@float
+        'Float'
+      when :array
+        'Array<any>'  # TODO(south37): check type of element
+      when :hash
+        'Hash<any, any>'  # TODO(south37): check type of element
+      when :var_ref
+        Util.assert! { r_ast[1].is_a?(Array) && r_ast[1][0] == :@kw }
+        case r_ast[1][1]
+        when 'true', 'false'
+          'bool'
+        when 'nil'
+          'nil'
+        else
+          'any'
+        end
+      else
+        'any'
       end
     end
 

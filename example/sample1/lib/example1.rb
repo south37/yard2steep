@@ -31,7 +31,17 @@ class MyClass
     end
   end
 
-  CONSTANT = "This is constant".freeze
+  CONSTANT   = "This is constant"
+  CONSTANT2  = /this is re/
+  CONSTANT3  = :symbol_value
+  CONSTANT4  = 1..2
+  CONSTANT5  = 34
+  CONSTANT6  = 2.34
+  CONSTANT7  = [1, 2]
+  CONSTANT8  = { a: 3 }
+  CONSTANT9  = true
+  CONSTANT10 = false
+  CONSTANT11 = nil
 
   # This for should not be used.
   # @return [String]

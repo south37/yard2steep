@@ -69,7 +69,7 @@ module Yard2steep
         r.push(parse_type)
 
         while t = peek
-          break if t != ','
+          break unless t == ','
           expect!(',')
           r.push(parse_type)
         end
@@ -129,15 +129,18 @@ module Yard2steep
         Util.assert! { t == token }
       end
 
+      # @return [String]
       def get
         @tokens.shift
       end
 
+      # @return [String]
       def peek
         @tokens[0]
       end
 
       # @param [String] message
+      # @return [void]
       def debug_print!(message)
         # TODO(south37) Add flag
         # print message

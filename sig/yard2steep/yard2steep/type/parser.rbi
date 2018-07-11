@@ -8,7 +8,7 @@ class Yard2steep::Type::Parser
   def parse_array: -> ArrayType
   def parse_hash: -> HashType
   def expect!: (String) -> any
-  def get: -> any
-  def peek: -> any
-  def debug_print!: (String) -> any
+  def get: -> String
+  def peek: -> String
+  def debug_print!: (String) -> void
 end

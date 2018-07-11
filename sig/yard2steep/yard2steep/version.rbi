@@ -1,1 +1,1 @@
-Yard2steep::VERSION: any
+Yard2steep::VERSION: String

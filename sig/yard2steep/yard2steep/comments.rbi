@@ -8,8 +8,8 @@ class Yard2steep::Comments
   def try_return_comment: (String) -> bool
   def normalize_type: (String) -> String
 end
-Yard2steep::Comments::S_RE: any
-Yard2steep::Comments::TYPE_WITH_PAREN_RE: any
-Yard2steep::Comments::COMMENT_RE: any
-Yard2steep::Comments::PARAM_RE: any
-Yard2steep::Comments::RETURN_RE: any
+Yard2steep::Comments::S_RE: Regexp
+Yard2steep::Comments::TYPE_WITH_PAREN_RE: Regexp
+Yard2steep::Comments::COMMENT_RE: Regexp
+Yard2steep::Comments::PARAM_RE: Regexp
+Yard2steep::Comments::RETURN_RE: Regexp

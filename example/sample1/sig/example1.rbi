@@ -19,7 +19,17 @@ class MyClass
   def present?: (any) -> any
   def mysum: (any) { (any) -> any } -> any
 end
-MyClass::CONSTANT: any
+MyClass::CONSTANT: String
+MyClass::CONSTANT2: Regexp
+MyClass::CONSTANT3: Symbol
+MyClass::CONSTANT4: Range<any>
+MyClass::CONSTANT5: Integer
+MyClass::CONSTANT6: Float
+MyClass::CONSTANT7: Array<any>
+MyClass::CONSTANT8: Hash<any, any>
+MyClass::CONSTANT9: bool
+MyClass::CONSTANT10: bool
+MyClass::CONSTANT11: nil
 module MyClass::InnerClass
   def double: (source: Integer) -> Integer
 end
