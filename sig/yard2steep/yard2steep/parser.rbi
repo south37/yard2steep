@@ -14,6 +14,8 @@ class Yard2steep::Parser
   def parse_class_or_module: (Array<any>) -> void
   def parse_bodystmt: (Array<any>) -> void
   def parse_assign: (Array<any>) -> void
+  def parse_assign_constant: (name: String, v_ast: Array<any>) -> void
+  def type_of: (Array<any>) -> String
   def parse_command: (Array<any>) -> void
   def parse_command_args_add_block: (Array<any>) -> Array<String>
   def parse_method_add_arg: (Array<any>) -> void
@@ -22,5 +24,5 @@ class Yard2steep::Parser
   def type_node: (String) -> AST::PTypeNode
   def block_type_node: (String) -> AST::PTypeNode
 end
-Yard2steep::Parser::ANY_TYPE: any
-Yard2steep::Parser::ANY_BLOCK_TYPE: any
+Yard2steep::Parser::ANY_TYPE: String
+Yard2steep::Parser::ANY_BLOCK_TYPE: String

@@ -7,4 +7,4 @@ class Yard2steep::AST::PTypeNode
   def kind: -> any
   def initialize: (p_type: String, p_name: String, kind: String) -> any
 end
-Yard2steep::AST::PTypeNode::KIND: any
+Yard2steep::AST::PTypeNode::KIND: Hash<any, any>

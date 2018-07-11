@@ -26,4 +26,4 @@ class Yard2steep::AST::ClassNode
   def to_s: -> String
   def inspect: -> String
 end
-Yard2steep::AST::ClassNode::KIND: any
+Yard2steep::AST::ClassNode::KIND: Array<any>

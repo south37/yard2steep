@@ -1,15 +1,34 @@
+class Yard2steep::Comments
+  @comments_map: any
+  @p_types: any
+  @r_type: any
+  def initialize: (any) -> any
+  def parse_from: (any) -> Array<any>
+  def reset_context!: () -> any
+  def extract: (any) -> any
+  def parse_comment!: (any) -> any
+  def try_param_comment: (any) -> bool
+  def try_return_comment: (any) -> bool
+  def normalize_type: (any) -> any
+end
+
+Yard2steep::Comments::S_RE: Regexp
+Yard2steep::Comments::TYPE_WITH_PAREN_RE: Regexp
+Yard2steep::Comments::COMMENT_RE: Regexp
+Yard2steep::Comments::PARAM_RE: Regexp
+Yard2steep::Comments::RETURN_RE: Regexp
 module Yard2steep::AST
 end
 
 class Yard2steep::Parser
   @debug: any
   @file: any
-  @comments_map: any
+  @comments: any
   @ast: any
   @current_class: any
-  @r_type: any
   @p_types: any
-  def initialize: () -> Hash<any, any>
+  @r_type: any
+  def initialize: () -> any
   def parse: (any, any, ?debug: bool) -> any
   def parse_program: (any) -> any
   def parse_stmts: (any) -> any
@@ -17,10 +36,6 @@ class Yard2steep::Parser
   def parse_defs: (any) -> any
   def parse_def: (any) -> any
   def parse_method_impl: (any, any, any) -> any
-  def extract_p_types!: (any) -> void
-  def parse_comment!: (any) -> any
-  def try_param_comment: (any) -> bool
-  def try_return_comment: (any) -> bool
   def parse_params: (any) -> any
   def parse_paren_params: (any) -> any
   def parse_no_paren_params: (any) -> any
@@ -28,22 +43,17 @@ class Yard2steep::Parser
   def parse_class_or_module: (any) -> any
   def parse_bodystmt: (any) -> any
   def parse_assign: (any) -> void
+  def parse_assign_constant: (name: any, v_ast: any) -> any
+  def type_of: (any) -> String
   def parse_command: (any) -> void
   def parse_command_args_add_block: (any) -> any
   def parse_method_add_arg: (any) -> void
   def parse_attr_reader: (any) -> any
-  def extract_comments: (any) -> any
   def debug_print!: (any) -> void
   def type_node: (any) -> any
   def block_type_node: (any) -> any
-  def normalize_type: (any) -> any
 end
 
-Yard2steep::Parser::S_RE: Regexp
-Yard2steep::Parser::TYPE_WITH_PAREN_RE: Regexp
-Yard2steep::Parser::COMMENT_RE: Regexp
-Yard2steep::Parser::PARAM_RE: Regexp
-Yard2steep::Parser::RETURN_RE: Regexp
 Yard2steep::Parser::ANY_TYPE: String
 Yard2steep::Parser::ANY_BLOCK_TYPE: String
 class Yard2steep::CLI
@@ -73,7 +83,7 @@ class Yard2steep::Engine
 end
 
 class Yard2steep::Type::TypeBase
-  def self.union2s: (any) -> any
+  def to_s: () -> any
 end
 
 class Yard2steep::Type::AnyType
@@ -97,6 +107,12 @@ class Yard2steep::Type::HashType
   @val: any
   def initialize: (key: any, val: any) -> any
   def to_s: () -> String
+end
+
+class Yard2steep::Type::UnionType
+  @types: any
+  def initialize: (types: any) -> any
+  def to_s: () -> any
 end
 
 class Yard2steep::Type::Parser
@@ -167,7 +183,8 @@ Yard2steep::AST::ClassNode::KIND: Array<any>
 class Yard2steep::AST::ConstantNode
   @name: any
   @klass: any
-  def initialize: (name: any, klass: any) -> any
+  @v_type: any
+  def initialize: (name: any, klass: any, v_type: any) -> any
   def long_name: () -> String
 end
 

@@ -94,7 +94,7 @@ module Yard2steep
     def gen_c!(c_node, off:)
       Util.assert! { c_node.is_a?(AST::ConstantNode) }
       # NOTE: Use any as constant type.
-      emit! "#{c_node.long_name}: any\n", off: off
+      emit! "#{c_node.long_name}: #{c_node.v_type}\n", off: off
     end
 
     # @param [AST::MethodNode] m_node
