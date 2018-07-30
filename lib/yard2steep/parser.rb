@@ -516,11 +516,9 @@ module Yard2steep
         when "attr_reader"
           parse_attr_reader(parse_command_args_add_block(r_ast[2]))
         when "attr_writer"
-          # TODO(south37) Impl
-          # parse_attr_writer(parse_command_args_add_block(r_ast[2]))
+          parse_attr_writer(parse_command_args_add_block(r_ast[2]))
         when "attr_accessor"
-          # TODO(south37) Impl
-          # parse_attr_accessor(parse_command_args_add_block(r_ast[2]))
+          parse_attr_accessor(parse_command_args_add_block(r_ast[2]))
         end
 
         # Do nothing for other case
@@ -605,17 +603,15 @@ module Yard2steep
         when "attr_reader"
           parse_attr_reader(parse_command_args_add_block(r_ast[2][1]))
         when "attr_writer"
-          # TODO(south37) Impl
-          # parse_attr_writer(parse_command_args_add_block(r_ast[2][1]))
+          parse_attr_writer(parse_command_args_add_block(r_ast[2][1]))
         when "attr_accessor"
-          # TODO(south37) Impl
-          # parse_attr_accessor(parse_command_args_add_block(r_ast[2][1]))
+          parse_attr_accessor(parse_command_args_add_block(r_ast[2][1]))
         end
         # Do nothing for other case
       end
     end
 
-    # @param [Array<String>] vars
+    # @param [Array<String>] ivars
     # @return [void]
     def parse_attr_reader(ivars)
       ivars.each do |ivarname|
@@ -625,15 +621,69 @@ module Yard2steep
           )
         )
 
-        # NOTE: Attr reader should add getter method
-        @current_class.append_m(
-          AST::MethodNode.new(
-            p_list: [],
-            r_type: ANY_TYPE,
-            m_name: ivarname,
+        # NOTE: attr_reader should add a getter method
+        @current_class.append_m(getter_method_node(ivarname))
+      end
+    end
+
+    # @param [Array<String>] ivars
+    # @return [void]
+    def parse_attr_writer(ivars)
+      ivars.each do |ivarname|
+        @current_class.append_ivar(
+          AST::IVarNode.new(
+            name: ivarname
           )
         )
+
+        # NOTE: attr_writer should add a setter method
+        @current_class.append_m(setter_method_node(ivarname))
       end
+    end
+
+    # @param [Array<String>] ivars
+    # @return [void]
+    def parse_attr_accessor(ivars)
+      ivars.each do |ivarname|
+        @current_class.append_ivar(
+          AST::IVarNode.new(
+            name: ivarname
+          )
+        )
+
+        # NOTE: attr_accessor should add getter and setter methods
+        @current_class.append_m(getter_method_node(ivarname))
+        @current_class.append_m(setter_method_node(ivarname))
+      end
+    end
+
+    # @param [String] ivarname
+    # @return [AST::MethodNode]
+    def getter_method_node(ivarname)
+      AST::MethodNode.new(
+        p_list: [],
+        r_type: ANY_TYPE,
+        m_name: ivarname,
+      )
+    end
+
+    # @param [String] ivarname
+    # @return [AST::MethodNode]
+    def setter_method_node(ivarname)
+      AST::MethodNode.new(
+        p_list: [
+          AST::PNode.new(
+            type_node: AST::PTypeNode.new(
+              p_type: ANY_TYPE,
+              p_name: '',
+              kind:   AST::PTypeNode::KIND[:normal],
+            ),
+            style: AST::PNode::STYLE[:normal],
+          )
+        ],
+        r_type: ANY_TYPE,
+        m_name: "#{ivarname}=",
+      )
     end
 
     ##

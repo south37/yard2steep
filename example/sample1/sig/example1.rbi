@@ -1,8 +1,12 @@
 class SomeClass
   @index: any
   @comment: any
+  @count: any
   def index: -> any
+  def index=: (any) -> any
   def comment: -> any
+  def count: -> any
+  def count=: (any) -> any
 end
 class MyClass
   def self.name: -> String
