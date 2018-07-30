@@ -49,6 +49,10 @@ class Yard2steep::Parser
   def parse_command_args_add_block: (any) -> any
   def parse_method_add_arg: (any) -> void
   def parse_attr_reader: (any) -> any
+  def parse_attr_writer: (any) -> any
+  def parse_attr_accessor: (any) -> any
+  def getter_method_node: (any) -> any
+  def setter_method_node: (any) -> any
   def debug_print!: (any) -> void
   def type_node: (any) -> any
   def block_type_node: (any) -> any
@@ -163,6 +167,7 @@ class Yard2steep::AST::ClassNode
   @c_list: any
   @m_list: any
   @ivar_list: any
+  @ivarname_s: any
   @children: any
   @parent: any
   @long_name: any
@@ -170,7 +175,7 @@ class Yard2steep::AST::ClassNode
   def initialize: (kind: any, c_name: any, super_c: any, parent: any) -> any
   def append_constant: (any) -> any
   def append_m: (any) -> any
-  def append_ivar: (any) -> any
+  def append_ivar: (any) -> void
   def append_child: (any) -> any
   def long_name: () -> any
   def long_super: () -> any

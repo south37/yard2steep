@@ -28,14 +28,15 @@ module Yard2steep
           parent.is_a?(AST::ClassNode) ||
           (parent == nil && c_name == 'main')
         }
-        @kind      = kind
-        @c_name    = c_name
-        @super_c   = super_c
-        @c_list    = []  # list of constants
-        @m_list    = []  # list of methods
-        @ivar_list = []  # list of instance variables
-        @children  = []  # list of child classes
-        @parent    = parent
+        @kind       = kind
+        @c_name     = c_name
+        @super_c    = super_c
+        @c_list     = []  # list of constants
+        @m_list     = []  # list of methods
+        @ivar_list  = []  # list of instance variables
+        @ivarname_s = Set.new
+        @children   = []  # list of child classes
+        @parent     = parent
       end
 
       # @param [AST::ConstantNode] c
@@ -53,7 +54,10 @@ module Yard2steep
       # @param [AST::IVarNode] ivar
       # @return [void]
       def append_ivar(ivar)
-        @ivar_list.push(ivar)
+        if !@ivarname_s.include?(ivar.name)
+          @ivar_list.push(ivar)
+          @ivarname_s << ivar.name
+        end
       end
 
       # @param [AST::ClassNode] child

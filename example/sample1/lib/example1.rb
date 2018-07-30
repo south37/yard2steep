@@ -13,9 +13,11 @@ end
 # @param [Array] contents
 
 class SomeClass
-  # @dynamic index, comment
+  # @dynamic index, index=, comment, count, count=
   attr_reader :index
+  attr_writer :index
   attr_reader("comment")
+  attr_accessor :count
 end
 
 module SomeModule
