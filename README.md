@@ -1,5 +1,8 @@
 # Yard2steep
 
+[![Build Status](https://travis-ci.org/south37/yard2steep.svg?branch=master)](https://travis-ci.org/south37/yard2steep)
+[![Gem Version](https://badge.fury.io/rb/yard2steep.svg)](https://badge.fury.io/rb/yard2steep)
+
 Generate [steep](https://github.com/soutaro/steep) type definition file from yard annotation.
 
 :warning: **This is highly experimental project.**
