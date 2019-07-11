@@ -55,7 +55,7 @@ GEM
     thread_safe (0.3.6)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
-    yard (0.9.14)
+    yard (0.9.20)
 
 PLATFORMS
   ruby
@@ -70,4 +70,4 @@ DEPENDENCIES
   yard2steep!
 
 BUNDLED WITH
-   1.16.2
+   1.17.2
