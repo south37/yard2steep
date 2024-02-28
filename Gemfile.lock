@@ -55,7 +55,7 @@ GEM
     thread_safe (0.3.6)
     tzinfo (1.2.7)
       thread_safe (~> 0.1)
-    yard (0.9.20)
+    yard (0.9.35)
 
 PLATFORMS
   ruby
